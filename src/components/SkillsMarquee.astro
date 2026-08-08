@@ -1,0 +1,21 @@
+---
+// Replace with your own skills, tools, or interests.
+const skills = [
+  'HTML', 'CSS', 'JavaScript', 'TypeScript',
+  'Python', 'Go', 'Rust', 'Bash',
+  'Git', 'GitHub Actions', 'Docker', 'Kubernetes',
+  'AWS', 'Azure', 'GCP',
+  'PostgreSQL', 'Redis', 'GraphQL', 'REST APIs',
+  'Linux', 'Terraform', 'Ansible', 'CI/CD',
+];
+---
+
+<section class="skills-marquee" aria-label="Skills">
+  <ul class="visually-hidden">
+    {skills.map((skill) => <li>{skill}</li>)}
+  </ul>
+  {/* Two copies make the loop seamless; hidden from readers and search. */}
+  <div class="skills-track" aria-hidden="true" data-pagefind-ignore>
+    {[...skills, ...skills].map((skill) => <span class="skills-item">{skill}</span>)}
+  </div>
+</section>
