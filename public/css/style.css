@@ -1,21 +1,21 @@
 /* Fonts are imported via Google Fonts CDN in Layout.astro for full Vietnamese and Latin unicode support */
 
 :root {
-    --bg: #f0eee9;
-    --bg-elevated: #f5f3ee;
-    --ink: #1a1a18;
-    --ink-soft: #3a3a36;
-    --muted: #6b6b66;
-    --muted-2: #8a8a84;
-    --line: #d8d6d0;
-    --line-strong: #c4c2bb;
+    --bg: #1a1b26;
+    --bg-elevated: #202331;
+    --ink: #d5dcff;
+    --ink-soft: #c0caf5;
+    --muted: #737aa2;
+    --muted-2: #565f89;
+    --line: #2f3549;
+    --line-strong: #414868;
     --terminal: #0c0c0b;
     --terminal-2: #131312;
-    --accent: #4a9eff;
-    --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
-    --green: #2d9f52;
-    --yellow: #b8860b;
-    --red: #c73e3e;
+    --accent: #7aa2f7;
+    --accent-soft: color-mix(in srgb, var(--accent) 15%, transparent);
+    --green: #9ece6a;
+    --yellow: #e0af68;
+    --red: #f7768e;
     --radius-lg: 6px;
     --radius-md: 4px;
     --radius-sm: 2px;
