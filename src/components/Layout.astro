@@ -476,15 +476,15 @@ const currentPath = Astro.url.pathname;
         let committed = saved || defaultPalette();
 
         function defaultPalette() {
-          return media.matches ? 'tokyo-night' : 'tokyo-night-day';
+          return 'tokyo-night';
         }
 
         function setPalette(value: string) {
-          document.documentElement.setAttribute('data-palette', value || defaultPalette());
+          document.documentElement.setAttribute('data-palette', value || 'tokyo-night');
         }
 
         function updateUI(value: string) {
-          const activeValue = value || defaultPalette();
+          const activeValue = value || 'tokyo-night';
           for (const opt of options) {
             opt.setAttribute('aria-selected', String(opt.dataset.value === activeValue));
           }
@@ -496,7 +496,7 @@ const currentPath = Astro.url.pathname;
           if (!overlay) return;
           overlay.hidden = false;
           document.body.style.overflow = 'hidden';
-          committed = localStorage.getItem('site-palette') || defaultPalette();
+          committed = localStorage.getItem('site-palette') || 'tokyo-night';
           updateUI(committed);
           const active = list?.querySelector<HTMLElement>("[aria-selected='true']") ?? options[0];
           active?.focus();
@@ -516,8 +516,8 @@ const currentPath = Astro.url.pathname;
         function preview(index: number) {
           const opt = options[index];
           if (!opt) return;
-          setPalette(opt.dataset.value ?? '');
-          updateUI(opt.dataset.value ?? '');
+          setPalette(opt.dataset.value ?? 'tokyo-night');
+          updateUI(opt.dataset.value ?? 'tokyo-night');
           opt.focus();
         }
 
@@ -533,13 +533,6 @@ const currentPath = Astro.url.pathname;
           updateUI(committed);
           closeOverlay();
         }
-
-        media.addEventListener('change', () => {
-          if (!localStorage.getItem('site-palette')) {
-            setPalette('');
-            updateUI('');
-          }
-        }, { signal });
 
         options.forEach((opt, idx) => {
           opt.addEventListener('click', () => commit(opt.dataset.value ?? ''), { signal });
@@ -602,8 +595,8 @@ const currentPath = Astro.url.pathname;
         }, { once: true, signal });
         themeHint.addEventListener('click', toggleOverlay, { signal });
         closeBtn.addEventListener('click', revert, { signal });
-        setPalette(saved);
-        updateUI(saved);
+        setPalette(saved || 'tokyo-night');
+        updateUI(saved || 'tokyo-night');
       }
 
       document.addEventListener('astro:page-load', initThemeSwitcher);
