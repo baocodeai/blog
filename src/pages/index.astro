@@ -2,11 +2,10 @@
 import { getCollection } from 'astro:content';
 import Layout from '../components/Layout.astro';
 import TypedLede from '../components/TypedLede.astro';
-import SkillsMarquee from '../components/SkillsMarquee.astro';
 
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
-  .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '') }))
+  .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
@@ -52,7 +51,5 @@ const personSchema = JSON.stringify({
         </nav>
       )}
     </section>
-
-    <SkillsMarquee />
   </main>
 </Layout>

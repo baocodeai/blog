@@ -3,6 +3,7 @@ title: "An Example Post"
 description: "A sample post showing the frontmatter fields and the markdown features this site supports."
 date: 2026-01-01
 draft: false
+tags: ["Example", "Guide"]
 ---
 
 This is an example post. Every post is a markdown file in `src/content/blog/` with four frontmatter fields: `title`, `description`, `date`, and an optional `draft` flag. Set `draft: true` to keep a post out of the build while you work on it.

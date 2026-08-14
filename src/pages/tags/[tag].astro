@@ -3,48 +3,49 @@ import { getCollection } from 'astro:content';
 import Layout from '../../components/Layout.astro';
 import TypedLede from '../../components/TypedLede.astro';
 
-const posts = (await getCollection('blog'))
-  .filter((post) => !post.data.draft)
-  .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  const uniqueTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
 
-const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort();
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts
+      .filter((post) => post.data.tags?.includes(tag) && !post.data.draft)
+      .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
+      .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+      
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
 ---
 
 <Layout
-  title="Blog — Your Name"
-  description="A short description of what you write about."
-  canonicalPath="/blog/"
+  title={`Posts tagged with "${tag}" — Your Name`}
+  description={`All articles related to ${tag}.`}
+  canonicalPath={`/tags/${tag}/`}
 >
   <main class="content-shell">
     <section class="page-hero">
-      <h1 class="visually-hidden">Blog</h1>
-      <TypedLede text="A short description of what you write about." />
+      <a href="/blog/" class="back-link">← Quay lại Blog</a>
+      <h1 class="visually-hidden">Tags</h1>
+      <TypedLede text={`Các bài viết có kỹ năng: ${tag}`} />
     </section>
 
-    <section class="section" aria-label="Blog posts">
-      {allTags.length > 0 && (
-        <div class="tags-filter">
-          <h3 class="tags-filter-title">Lọc theo kỹ năng:</h3>
-          <div class="tags-filter-list">
-            {allTags.map((tag) => (
-              <a href={`/tags/${tag}/`} class="tag-pill">
-                #{tag}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
+    <section class="section" aria-label={`Blog posts tagged with ${tag}`}>
       {posts.length === 0 ? (
-        <p style="color: var(--muted); font-family: var(--mono);">No posts yet, check back soon.</p>
+        <p style="color: var(--muted); font-family: var(--mono);">Chưa có bài viết nào.</p>
       ) : (
         <div class="post-list">
           {posts.map((post, index) => (
             <article class="post-card">
               <a class="post-card-link" href={`/blog/${post.slug}/`}>
                 <div class="post-card-content">
-                  <h2>{post.data.title}{index === 0 && <span class="tag-latest">latest</span>}</h2>
+                  <h2>{post.data.title}</h2>
                   <p>{post.data.description}</p>
                   <p class="post-card-meta">{post.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
                 </div>
@@ -56,8 +57,8 @@ const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort
               </a>
               {post.data.tags && post.data.tags.length > 0 && (
                 <div style="margin-top: 0.2rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                  {post.data.tags.map((tag: string) => (
-                    <a href={`/tags/${tag}/`} style="background: var(--bg-elevated); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--accent); font-family: var(--mono); text-decoration: none; position: relative; z-index: 2;">#{tag}</a>
+                  {post.data.tags.map((t: string) => (
+                    <a href={`/tags/${t}/`} class={t === tag ? "tag-pill active" : "tag-pill"}>#{t}</a>
                   ))}
                 </div>
               )}
@@ -70,24 +71,19 @@ const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort
 </Layout>
 
 <style>
-  .tags-filter {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--line);
-  }
-  .tags-filter-title {
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
     font-family: var(--sans);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
   }
-  .tags-filter-list {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
+  .back-link:hover {
+    color: var(--accent);
   }
   .tag-pill {
     display: inline-flex;
@@ -101,11 +97,16 @@ const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort
     font-family: var(--mono);
     text-decoration: none;
     transition: all 0.2s ease;
+    position: relative;
+    z-index: 2;
   }
-  .tag-pill:hover {
+  .tag-pill:hover,
+  .tag-pill.active {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--bg);
+  }
+  .tag-pill:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px var(--accent-soft);
   }

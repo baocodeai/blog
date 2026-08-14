@@ -7,7 +7,7 @@ export async function getStaticPaths() {
   return posts
     .filter((post) => !post.data.draft)
     .map((post) => {
-      const slug = post.id.replace(/\.(md|mdx)$/i, '');
+      const slug = post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '');
       return {
         params: { slug },
         props: { post, slug },
@@ -68,6 +68,18 @@ const postSchema = JSON.stringify({
           </p>
           <h1>{post.data.title}</h1>
           <p>{post.data.description}</p>
+          {post.data.tags && post.data.tags.length > 0 && (
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              {post.data.tags.map((tag: string) => (
+                <a href={`/tags/${tag}/`} class="tag-pill">#{tag}</a>
+              ))}
+            </div>
+          )}
+          {post.data.coverImage && (
+            <div style="margin-top: 2rem; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line);">
+              <img src={post.data.coverImage.src || post.data.coverImage} alt={post.data.title} style="width: 100%; max-height: 400px; object-fit: cover;" />
+            </div>
+          )}
         </header>
         <div class="article-prose">
           <Content />
@@ -78,6 +90,29 @@ const postSchema = JSON.stringify({
       </article>
     </div>
   </main>
+
+  <style>
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px; /* Pill shape */
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tag-pill:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--accent-soft);
+    }
+  </style>
 
   <script>
     // Optional Remark42 comments. Point these at your own instance, or

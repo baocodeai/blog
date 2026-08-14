@@ -1,13 +1,4 @@
-@font-face {
-    font-family: "JetBrains Mono";
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url("/assets/jbm.woff2") format("woff2");
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-        U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-        U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
+/* Fonts are imported via Google Fonts CDN in Layout.astro for full Vietnamese and Latin unicode support */
 
 :root {
     --bg: #f0eee9;
@@ -29,8 +20,13 @@
     --radius-md: 4px;
     --radius-sm: 2px;
     --max: 1160px;
-    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* JetBrains Mono has no Vietnamese glyphs (see its unicode-range above),
+       so "Be Vietnam Pro" sits next in the chain to catch diacritics —
+       otherwise they fall through to an arbitrary system mono and headings
+       render two typefaces mid-word. */
+    --mono: "JetBrains Mono", "Be Vietnam Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: "Be Vietnam Pro", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --body: "Literata", Georgia, "Times New Roman", ui-serif, serif;
     --term-bg: #1a1d22;
     --term-sidebar-bg: #15181d;
     --term-active-bg: #20242c;
@@ -215,6 +211,13 @@ body {
     margin: 0;
     min-width: 320px;
     background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
 }
 
 img, video {
@@ -268,13 +271,24 @@ code, pre, kbd, samp {
     gap: 1rem;
 }
 
+.nav-brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 700;
+    font-family: var(--sans);
+    letter-spacing: -0.01em;
+    transition: opacity 0.2s ease;
+}
+
 .brand {
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    font-family: var(--mono);
+    font-family: var(--sans);
     font-weight: 700;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.01em;
     color: var(--ink);
 }
 
@@ -283,8 +297,9 @@ code, pre, kbd, samp {
     align-items: center;
     gap: 1.25rem;
     color: var(--muted);
-    font-size: 0.9rem;
-    font-family: var(--mono);
+    font-size: 0.92rem;
+    font-family: var(--sans);
+    font-weight: 500;
 }
 
 /* Blinking block cursor marks the current page in the nav. */
@@ -359,11 +374,12 @@ code, pre, kbd, samp {
 }
 
 .nav-menu-panel a {
+    display: block;
     border-radius: var(--radius-sm);
     padding: 0.62rem 0.7rem;
     color: var(--ink-soft);
-    font-family: var(--mono);
-    font-size: 0.86rem;
+    font-family: var(--sans);
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
@@ -490,6 +506,8 @@ code, pre, kbd, samp {
 .theme-overlay-list::-webkit-scrollbar-thumb {
     background: var(--term-border);
     border-radius: 1px;
+}
+
 }
 
 .theme-sep {
@@ -814,11 +832,11 @@ button.nav-icon-link {
     max-width: 14ch;
     margin: 0;
     color: var(--ink);
-    font-family: var(--mono);
-    font-weight: 400;
-    font-size: clamp(2.8rem, 7vw, 6rem);
-    line-height: 0.92;
-    letter-spacing: -0.07em;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
 }
 
 .page-hero .hero-lede {
@@ -860,7 +878,7 @@ button.nav-icon-link {
     gap: 1.15rem;
     margin-left: 5px;
     border-left: 2px solid var(--line);
-    font-family: var(--mono);
+    font-family: var(--sans);
 }
 
 .commit-tree a {
@@ -872,9 +890,10 @@ button.nav-icon-link {
     padding-left: 1.25rem;
     color: var(--ink);
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.45;
     text-decoration: none;
+    font-family: var(--sans);
 }
 
 .commit-tree a::before {
@@ -926,21 +945,54 @@ button.nav-icon-link {
 
 .post-card-link {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.45rem 0;
     text-decoration: none;
 }
 
+.post-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.post-cover-container {
+    flex: 0 0 140px;
+    height: 100px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    display: flex;
+}
+
+.post-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 640px) {
+    .post-card-link {
+        flex-direction: column-reverse;
+        gap: 1rem;
+    }
+    .post-cover-container {
+        flex: auto;
+        width: 100%;
+        height: 180px;
+    }
+}
+
 .post-card h2 {
     margin: 0;
     color: var(--ink);
-    font-size: clamp(1.45rem, 3vw, 2.05rem);
-    font-family: var(--mono);
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.055em;
+    font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+    font-family: var(--sans);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
     transition: color 0.16s ease;
 }
 
@@ -1065,11 +1117,11 @@ button.nav-icon-link {
     max-width: 22ch;
     margin: 0;
     color: var(--ink);
-    font-family: var(--mono);
-    font-weight: 400;
-    font-size: clamp(2rem, 4vw, 3.4rem);
-    line-height: 1;
-    letter-spacing: -0.055em;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 3.5vw, 3rem);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
 }
 
 .article-header p:last-child {
@@ -1092,10 +1144,10 @@ button.nav-icon-link {
 .article-prose h2,
 .article-prose h3 {
     color: var(--ink);
-    line-height: 1.05;
-    letter-spacing: -0.04em;
-    font-family: var(--mono);
-    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    font-family: var(--sans);
+    font-weight: 700;
 }
 
 .article-prose h1 {
@@ -1277,7 +1329,7 @@ button.nav-icon-link {
     /* Constrained to the content column so its top border lines up with
        the section dividers above it. */
     max-width: var(--max);
-    margin: 4.5rem auto 0;
+    margin: 0 auto 0;
     padding: 1.2rem 1.25rem;
     border-top: 1px solid var(--line);
     overflow: hidden;
@@ -1460,4 +1512,112 @@ button.nav-icon-link {
     }
 
     .theme-hint::after { display: none; }
+}
+
+/* ==========================================================================
+   Projects Grid Layout
+   ========================================================================== */
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.project-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-elevated);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+}
+
+.project-cover {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: var(--bg);
+}
+
+.project-content {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.project-title {
+    font-family: var(--sans);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+}
+
+.project-description {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 1.2rem 0;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.project-tech-tag {
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.project-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.project-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--bg);
+    background: var(--ink);
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.project-btn:hover {
+    opacity: 0.85;
+}
+
+.project-btn.secondary {
+    background: var(--bg-elevated);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+}
+
+.project-btn.secondary:hover {
+    background: var(--line);
 }

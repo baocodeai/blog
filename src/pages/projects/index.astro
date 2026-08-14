@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../components/Layout.astro';
+import TypedLede from '../../components/TypedLede.astro';
+
+const projects = (await getCollection('projects'))
+  .filter((project) => !project.data.draft)
+  .map((project) => ({ ...project, slug: project.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Layout
+  title="Projects"
+  description="Showcase of my recent work and open source projects."
+  canonicalPath="/projects/"
+>
+  <main class="content-shell">
+    <section class="page-hero">
+      <h1 class="visually-hidden">Projects</h1>
+      <TypedLede text="Các dự án nổi bật tôi đã thực hiện." />
+    </section>
+
+    <section class="section" aria-label="Projects list">
+      {projects.length === 0 ? (
+        <p style="color: var(--muted); font-family: var(--mono);">Chưa có dự án nào được thêm.</p>
+      ) : (
+        <div class="project-grid">
+          {projects.map((project) => (
+            <div class="project-card">
+              {project.data.coverImage && (
+                <a href={`/projects/${project.slug}/`} style="display: block;">
+                  <img class="project-cover" src={typeof project.data.coverImage === 'string' ? project.data.coverImage : project.data.coverImage.src} alt={project.data.title} />
+                </a>
+              )}
+              <div class="project-content">
+                <a href={`/projects/${project.slug}/`} style="text-decoration: none;">
+                  <h2 class="project-title">{project.data.title}</h2>
+                </a>
+                <p class="project-description">{project.data.description}</p>
+                
+                {project.data.techStack && project.data.techStack.length > 0 && (
+                  <div class="project-tech">
+                    {project.data.techStack.map((tech: string) => (
+                      <span class="project-tech-tag">{tech}</span>
+                    ))}
+                  </div>
+                )}
+                
+                <div class="project-actions">
+                  <a href={`/projects/${project.slug}/`} class="project-btn">Chi tiết</a>
+                  {project.data.demoUrl && (
+                    <a href={project.data.demoUrl} target="_blank" rel="noopener noreferrer" class="project-btn secondary">Demo</a>
+                  )}
+                  {project.data.repoUrl && (
+                    <a href={project.data.repoUrl} target="_blank" rel="noopener noreferrer" class="project-btn secondary">GitHub</a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  </main>
+</Layout>

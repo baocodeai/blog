@@ -1,0 +1,90 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../components/Layout.astro';
+import TypedLede from '../../components/TypedLede.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects
+    .filter((project) => !project.data.draft)
+    .map((project) => {
+      const slug = project.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '');
+      return {
+        params: { slug },
+        props: { project, slug },
+      };
+    });
+}
+
+const { project, slug } = Astro.props;
+const { Content } = await render(project);
+---
+
+<Layout
+  title={`${project.data.title} — Project`}
+  description={project.data.description}
+  canonicalPath={`/projects/${slug}/`}
+>
+  <main class="content-shell">
+    <div class="section" style="max-width: var(--max); padding-inline: 1.25rem;">
+      <article class="article">
+        <header class="article-header">
+          <a href="/projects/" class="back-link">← Quay lại danh sách Dự án</a>
+          
+          <h1 class="article-title">{project.data.title}</h1>
+          <p class="article-description">{project.data.description}</p>
+          
+          <div class="project-actions" style="margin-top: 1.5rem; justify-content: flex-start;">
+            {project.data.demoUrl && (
+              <a href={project.data.demoUrl} target="_blank" rel="noopener noreferrer" class="project-btn">Xem Demo trực tiếp</a>
+            )}
+            {project.data.repoUrl && (
+              <a href={project.data.repoUrl} target="_blank" rel="noopener noreferrer" class="project-btn secondary">Xem Mã Nguồn</a>
+            )}
+          </div>
+          
+          {project.data.techStack && project.data.techStack.length > 0 && (
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              {project.data.techStack.map((tech: string) => (
+                <span class="project-tech-tag">{tech}</span>
+              ))}
+            </div>
+          )}
+          
+          {project.data.coverImage && (
+            <div style="margin-top: 2rem; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line);">
+              <img src={typeof project.data.coverImage === 'string' ? project.data.coverImage : project.data.coverImage.src} alt={project.data.title} style="width: 100%; max-height: 500px; object-fit: cover;" />
+            </div>
+          )}
+        </header>
+        
+        <div class="article-prose" style="margin-top: 2rem;">
+          <Content />
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <style>
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 2rem;
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .back-link:hover {
+      color: var(--accent);
+    }
+    .article-description {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-top: 0.8rem;
+      line-height: 1.6;
+    }
+  </style>
+</Layout>
