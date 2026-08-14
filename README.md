@@ -1,83 +1,71 @@
-# Astro Palette
+# BaoNV — Computer Vision Engineer Portfolio & Technical Blog
 
-A blog and personal site theme for Astro with a terminal look and 18 switchable color palettes. The build output is fully static, with no client-side framework and no analytics.
+A high-performance, minimalist personal portfolio and technical blog built with [Astro](https://astro.build), tailored specifically for **Computer Vision & Edge AI Engineers**.
 
-**[Demo](https://astro-palette.8limb.dev/)**
+---
 
-Based on the website theme from [herdr](https://github.com/ogulcancelik/herdr) by Oğulcan Çelik, distributed under the same AGPL-3.0-or-later license.
+## 🌟 Key Highlights & Architecture
 
-## Screenshots
+- **Dark-Mode First**: Defaults to high-contrast `tokyo-night` theme with 18 switchable runtime color palettes.
+- **Adaptive Logo**: Automatically adapts between high-contrast Electric Cyan (Dark mode with subtle neon glow) and deep sapphire (Light mode).
+- **Zero-Margin Favicon**: Multi-resolution favicons with zero-margin tight cropping for maximum tab readability.
+- **9 Principles CV Blog Grid**:
+  - **16:9 / 16:10 Ratio-Locked Covers**: Ensures clean, uniform card alignment with zero layout shift.
+  - **Authentic CV Result Thumbnails**: Visualizes real detection boxes, 3DGS Gaussian ellipsoids, SAM 2 masks, and WebGPU WGSL pipelines.
+  - **Featured Hero Banner + 4-Column Grid**: Dynamic rhythm guiding readers into top-priority papers and engineering logs.
+  - **Instant Live Filter & Search**: Client-side zero-latency filtering across 6 technical domains (`Detection`, `3D Vision`, `VLM`, `Deployment`, `Diffusion`, `Segmentation`) and search index.
+- **Featured Projects**: Live interactive WebGPU demos and repository showcases.
+- **Fast & 100% Static**: Pure static HTML/CSS with client-side Pagefind search (Ctrl+K).
 
-![Home page](docs/screenshots/home.png)
+---
 
-![A blog post, with the table of contents generated from its headings](docs/screenshots/post.png)
-
-| Blog index | About |
-| --- | --- |
-| ![Blog index](docs/screenshots/blog.png) | ![About page](docs/screenshots/about.png) |
-
-| Theme switcher | Search (Ctrl/Cmd+K) |
-| --- | --- |
-| ![Theme switcher overlay listing the color palettes](docs/screenshots/theme-switcher.png) | ![Search terminal with a query and a matched result](docs/screenshots/search.png) |
-
-## Features
-
-- 18 color palettes (Catppuccin, Nord, Dracula, Gruvbox, Tokyo Night, Rosé Pine, Kanagawa, Solarized, and others), defined as plain CSS variables and switchable at runtime
-- Home, blog, and about pages, an RSS feed, and a sitemap
-- Client-side search via [Pagefind](https://pagefind.app), opened with Ctrl/Cmd+K, with shell-style history recall on the arrow keys
-- Table of contents on posts, generated from level-two headings
-- Optional [Remark42](https://remark42.com) comments
-- JetBrains Mono throughout, with code blocks highlighted to match the active palette
-
-## Getting started
+## 🚀 Quick Start
 
 ```sh
 npm install
-npm run dev       # dev server on :4321
-npm run build     # astro build + pagefind index
-npm run preview   # preview the production build
-npm run check     # astro type checking
+npm run dev       # Start local development server on http://localhost:4321
+npm run build     # Compile static bundle and generate Pagefind search index
+npm run preview   # Preview the production build locally
+npm run check     # Type-check Astro and TypeScript content collections
 ```
 
-Search queries the Pagefind index in `dist/`, so run `npm run build` once before search will return results in dev.
+---
 
-## Customizing
-
-The theme ships with placeholder values. Search the project for `example.com`, `Your Name`, `your-username`, and the `Palette` site name, and replace them in:
-
-- `astro.config.mjs`: the `site` domain
-- `src/components/Layout.astro`: site name, social links, footer
-- `src/pages/index.astro`: tagline and person schema
-- `src/pages/about.astro`: bio and education
-- `src/components/SkillsMarquee.astro`: skills list
-- `src/pages/rss.xml.ts` and `src/pages/blog/[slug].astro`: feed and author metadata
-- `public/robots.txt` and `public/.well-known/security.txt`: domain and contact
-- `public/assets/og.png`: social preview image, 1200x630 (a plain placeholder is included)
-
-Comments stay disabled unless you run a Remark42 instance. The configuration is at the bottom of `src/pages/blog/[slug].astro`; remove the comments section there if you don't want it.
-
-## Writing posts
-
-Posts are markdown files in `src/content/blog/` with `title`, `description`, `date`, and optional `draft` frontmatter. `example-post.md` shows the frontmatter and the supported markdown.
-
-## Project structure
+## 📁 Directory Layout
 
 ```
 src/
-  components/     Layout (nav, search, theme switcher), TypedLede, SkillsMarquee
-  content/blog/   posts as markdown
-  pages/          index (home), blog/, about, 404, rss
+├── components/         Layout (Header, Nav, Socials, Theme Switcher), TypedLede
+├── content/
+│   ├── blog/           Markdown articles (Paper Reproductions, Deep Dives, Deployment Logs)
+│   └── projects/       Featured CV & Edge AI engineering projects
+└── pages/
+    ├── index.astro     Hero, 6 Technical Domains, Featured Projects, Recent Posts
+    ├── blog/           9-Principle CV Blog (Featured Banner, Domain Chips, 4-Col Grid)
+    ├── projects/       Project showcase & live demo cards
+    ├── about.astro     Bio, background, and contact
+    └── tags/[tag].astro Dynamic tag & domain topic routing
 public/
-  css/style.css   all styling, including palette definitions
-  assets/         font, og image
+├── covers/             Authentic CV result cover illustrations (16:9 SVGs)
+├── css/style.css       Core stylesheet, design system tokens, palette definitions
+├── favicon.svg         Zero-margin vector favicon
+└── logo.png / logo-dark.png Adaptive high-res brand logos
+templates/
+├── HUONG-DAN.md        Complete Vietnamese workflow and writing guide
+├── bai-viet.md         Starter template for new technical blog posts
+└── du-an.md            Starter template for new portfolio projects
 ```
 
-## License
+---
 
-[AGPL-3.0-or-later](LICENSE).
+## ✍️ Writing Content
 
-Credits:
+- **New Blog Post**: Copy [`templates/bai-viet.md`](templates/bai-viet.md) to `src/content/blog/your-post-slug.md`.
+- **New Project**: Copy [`templates/du-an.md`](templates/du-an.md) to `src/content/projects/your-project-slug.md`.
+- **Full Guide**: See [`templates/HUONG-DAN.md`](templates/HUONG-DAN.md) for complete documentation.
 
-- Base theme: [herdr](https://github.com/ogulcancelik/herdr) website theme (AGPL-3.0-or-later)
-- Font: [JetBrains Mono](https://www.jetbrains.com/lp/mono/), under the [SIL Open Font License 1.1](https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt)
-- Search: [Pagefind](https://pagefind.app) (MIT)
+---
+
+## 📄 License
+
+AGPL-3.0-or-later.

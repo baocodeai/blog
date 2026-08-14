@@ -25,15 +25,15 @@ const { posts } = Astro.props;
 ---
 
 <Layout
-  title={`Posts tagged with "${tag}" — Your Name`}
-  description={`All articles related to ${tag}.`}
+  title={`Chủ đề: ${tag} — BaoNV`}
+  description={`Các bài viết chuyên sâu về ${tag}.`}
   canonicalPath={`/tags/${tag}/`}
 >
   <main class="content-shell">
     <section class="page-hero">
-      <a href="/blog/" class="back-link">← Quay lại Blog</a>
+      <a href="/blog/" class="back-link">← Quay lại danh sách bài viết</a>
       <h1 class="visually-hidden">Tags</h1>
-      <TypedLede text={`Các bài viết có kỹ năng: ${tag}`} />
+      <TypedLede text={`Chủ đề chuyên môn: ${tag}`} />
     </section>
 
     <section class="section" aria-label={`Blog posts tagged with ${tag}`}>
@@ -41,7 +41,7 @@ const { posts } = Astro.props;
         <p style="color: var(--muted); font-family: var(--mono);">Chưa có bài viết nào.</p>
       ) : (
         <div class="post-list">
-          {posts.map((post, index) => (
+          {posts.map((post) => (
             <article class="post-card">
               <a class="post-card-link" href={`/blog/${post.slug}/`}>
                 <div class="post-card-content">
@@ -51,7 +51,7 @@ const { posts } = Astro.props;
                 </div>
                 {post.data.coverImage && (
                   <div class="post-cover-container">
-                    <img class="post-cover-image" src={post.data.coverImage.src || post.data.coverImage} alt={post.data.title} />
+                    <img class="post-cover-image" src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src} alt={post.data.title} />
                   </div>
                 )}
               </a>

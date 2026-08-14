@@ -28,7 +28,7 @@ const postSchema = JSON.stringify({
   url: new URL(`/blog/${slug}/`, Astro.site).toString(),
   author: {
     '@type': 'Person',
-    name: 'Your Name',
+    name: 'BaoNV',
     url: 'https://example.com/about/',
   },
   // Escape < so a post title/description can never close the <script> tag.
@@ -36,7 +36,7 @@ const postSchema = JSON.stringify({
 ---
 
 <Layout
-  title={`${post.data.title} — Your Name`}
+  title={`${post.data.title} — BaoNV`}
   description={post.data.description}
   canonicalPath={`/blog/${slug}/`}
   ogType="article"
@@ -77,7 +77,7 @@ const postSchema = JSON.stringify({
           )}
           {post.data.coverImage && (
             <div style="margin-top: 2rem; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--line);">
-              <img src={post.data.coverImage.src || post.data.coverImage} alt={post.data.title} style="width: 100%; max-height: 400px; object-fit: cover;" />
+              <img src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src} alt={post.data.title} style="width: 100%; max-height: 400px; object-fit: cover;" />
             </div>
           )}
         </header>

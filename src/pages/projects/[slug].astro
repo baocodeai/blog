@@ -1,7 +1,6 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Layout from '../../components/Layout.astro';
-import TypedLede from '../../components/TypedLede.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');

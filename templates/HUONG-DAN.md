@@ -1,72 +1,114 @@
-# Hướng dẫn viết bài
+# Hướng dẫn Quản trị & Phát triển Website — BaoNV Portfolio & Blog
 
-## 1. Tạo file mới
+Tài liệu hướng dẫn toàn diện cách viết bài, thêm dự án, tùy chỉnh giao diện và xuất bản trang cá nhân **BaoNV (Computer Vision Engineer)**.
 
-Copy `templates/bai-viet.md` vào `src/content/blog/`, đặt tên file là **slug không dấu**:
+---
+
+## 1. Cấu trúc Nội dung Website
+
+Website được xây dựng chuyên biệt cho Computer Vision Engineer với hệ thống phân cấp rõ ràng:
+
+1. **3 Trục Bài viết (Tracks)**:
+   - `Paper Reproductions`: Tái tạo kiến trúc các bài báo khoa học đỉnh cao (SAM 2, ControlNet, ViT).
+   - `Deep Dives`: Phân tích sâu thuật toán, toán học và kỹ thuật tối ưu (3D Gaussian Splatting, Visual RAG).
+   - `Deployment Logs`: Nhật ký tối ưu hóa và triển khai phần cứng/trình duyệt (WebGPU, ONNX Runtime, TensorRT).
+
+2. **6 Lĩnh vực Chuyên môn (Technical Domains)**:
+   - `Detection`: Phát hiện và bám vết đối tượng thời gian thực (YOLOv11, ByteTrack, RT-DETR).
+   - `3D Vision`: Tái tạo không gian 3D, 3DGS, NeRF, Depth Estimation.
+   - `Deployment`: Edge AI, WebGPU, TensorRT FP16/INT8, C++ Runtimes.
+   - `VLM`: Multimodal, Vision-Language Models (Florence-2, CLIP, LLaVA).
+   - `Diffusion`: Generative AI, ControlNet, LoRA Fine-tuning.
+   - `Segmentation`: Phân vùng ảnh và video tương tác (SAM 2, Mask2Former).
+
+---
+
+## 2. Hướng dẫn Viết bài Blog Mới (`/blog/`)
+
+### Bước 1: Tạo file bài viết
+Copy file mẫu từ [`templates/bai-viet.md`](file:///d:/projects/blog/templates/bai-viet.md) vào thư mục `src/content/blog/`, đặt tên file dạng slug không dấu:
 
 ```bash
-cp templates/bai-viet.md src/content/blog/cach-toi-viet-blog.md
+cp templates/bai-viet.md src/content/blog/ten-bai-viet-moi.md
 ```
 
-Tên file chính là URL. File `cach-toi-viet-blog.md` sẽ ra `/blog/cach-toi-viet-blog/`.
+### Bước 2: Điền Frontmatter chuẩn
+Mỗi bài viết bắt đầu bằng khối metadata giữa hai cặp dấu `---`:
 
-### Quy tắc đặt slug
+```yaml
+---
+title: "Tối ưu hóa YOLOv11 với TensorRT FP16"
+description: "Pipeline phát hiện và bám vết đa đối tượng đạt 120 FPS với độ trễ 3.8ms."
+date: 2026-08-14
+draft: false
+featured: true                        # true = Đặt làm bài nổi bật to ở đầu trang blog
+category: "Deployment Logs"           # "Paper Reproductions" | "Deep Dives" | "Deployment Logs"
+domain: "Detection"                   # "Detection" | "3D Vision" | "VLM" | "Deployment" | "Diffusion"
+coverImage: "/covers/yolo-detection.svg"  # Ảnh kết quả CV tỉ lệ 16:9 (đặt trong public/covers/)
+readingTime: "8 min read"
+tags: ["Detection", "YOLOv11", "TensorRT", "ByteTrack", "Edge AI"]
+---
+```
 
-Bỏ dấu, `đ` → `d`, chữ thường, khoảng trắng → gạch ngang, bỏ hết ký tự đặc biệt.
+### Bước 3: Nguyên tắc hình ảnh Cover (9 Nguyên tắc CV)
+- **Tỉ lệ cố định**: Luôn dùng ảnh tỉ lệ **16:9** hoặc **16:10**.
+- **Dùng ảnh kết quả thực tế**: Nên dùng ảnh có bounding box, mask màu, depth map hoặc sơ đồ latency pipeline làm thumbnail để tăng độ uy tín và đẹp mắt.
+- **Thư mục lưu ảnh**: Đặt ảnh trong thư mục [`public/covers/`](file:///d:/projects/blog/public/covers/) hoặc [`public/assets/`](file:///d:/projects/blog/public/assets/).
 
-| Tiêu đề | Tên file |
+---
+
+## 3. Hướng dẫn Thêm Dự án Mới (`/projects/`)
+
+### Bước 1: Tạo file dự án
+Copy [`templates/du-an.md`](file:///d:/projects/blog/templates/du-an.md) vào `src/content/projects/`:
+
+```bash
+cp templates/du-an.md src/content/projects/webgpu-yolo-tracker.md
+```
+
+### Bước 2: Điền Frontmatter dự án
+```yaml
+---
+title: "WebGPU Real-time YOLOv11 & ByteTrack"
+description: "Zero-server, client-side object detection running at 60 FPS in browser."
+date: 2026-08-01
+draft: false
+featured: true                        # Hiển thị ở phần Featured Projects trang chủ
+badge: "Live Demo"                    # Badge nổi bật trên card
+domain: "Edge AI"
+techStack: ["WebGPU", "ONNX Web", "TypeScript", "YOLOv11"]
+coverImage: "/covers/webgpu-runtime.svg"
+demoUrl: "https://your-demo.link"
+repoUrl: "https://github.com/baocodeai/your-repo"
+---
+```
+
+---
+
+## 4. Logo, Favicon & Hệ thống Dark Mode
+
+1. **Dark Mode mặc định**: Website tự động khởi chạy ở chế độ Dark Mode (`tokyo-night`) sang trọng.
+2. **Logo thông minh (Adaptive Logo)**:
+   - File gốc: [`public/logo.png`](file:///d:/projects/blog/public/logo.png) (xanh đậm cho Light mode).
+   - File Dark mode: [`public/logo-dark.png`](file:///d:/projects/blog/public/logo-dark.png) (Electric Cyan rực rỡ có hiệu ứng phát sáng nhẹ trên nền tối).
+   - Favicon: Tự động tối ưu zero-margin cho tab trình duyệt tại [`public/favicon.svg`](file:///d:/projects/blog/public/favicon.svg) và [`public/favicon.ico`](file:///d:/projects/blog/public/favicon.ico).
+
+---
+
+## 5. Các Lệnh Thao tác Thường dùng
+
+| Lệnh Terminal | Mục đích |
 |---|---|
-| Cách tôi viết blog | `cach-toi-viet-blog.md` |
-| Đọc hiểu mã nguồn Astro | `doc-hieu-ma-nguon-astro.md` |
-| 5 mẹo dùng Git hằng ngày | `5-meo-dung-git-hang-ngay.md` |
+| `npm run dev` | Chạy dev server tại `http://localhost:4321` để xem trước thay đổi |
+| `npm run build` | Build bản tĩnh (Static HTML/CSS/JS) và tạo index tìm kiếm Pagefind |
+| `npm run preview` | Chạy thử bản build production hoàn chỉnh |
+| `npm run check` | Kiểm tra lỗi cú pháp TypeScript và Content Collections |
 
-Tiêu đề trong frontmatter thì **vẫn giữ nguyên dấu** — chỉ tên file mới bỏ dấu.
+---
 
-## 2. Điền frontmatter
+## 6. Triển khai (Deployment)
 
-Bốn trường ở đầu file, nằm giữa hai dòng `---`:
-
-| Trường | Bắt buộc | Ý nghĩa |
-|---|---|---|
-| `title` | có | Tiêu đề, có dấu. Hiện ở thẻ `<title>`, trang blog, và khi share link. |
-| `description` | có | Một câu tóm tắt. Hiện ở danh sách bài, kết quả tìm kiếm, và thẻ Open Graph. |
-| `date` | có | Định dạng `YYYY-MM-DD`. Bài mới nhất tự động được gắn nhãn `latest`. |
-| `draft` | không | `true` = chưa xuất bản, không lên site. Mặc định `false`. |
-
-Thiếu `title`, `description`, hoặc `date` thì build sẽ báo lỗi ngay — đó là chủ ý, để không
-bao giờ có bài lên site mà thiếu metadata.
-
-## 3. Viết nội dung
-
-- Đoạn đầu tiên (trước heading đầu) là phần mở bài, nên viết cho gọn và rõ.
-- Mỗi heading `##` tự động thành một mục trong **mục lục** ở cột bên cạnh. Heading `###` thì không.
-- Code block dùng ba dấu backtick kèm tên ngôn ngữ (` ```js `) để có tô màu cú pháp.
-- Ảnh đặt trong `public/assets/`, chèn bằng `![mô tả](/assets/ten-anh.png)`.
-
-## 4. Xem thử ở máy
-
-```bash
-npm run dev
-```
-
-Mở http://localhost:4321. Bài `draft: true` sẽ **không** hiện — muốn xem thử thì tạm để
-`draft: false`, xem xong đổi lại.
-
-## 5. Xuất bản
-
-Đổi `draft: true` thành `draft: false`, rồi build:
-
-```bash
-npm run build
-```
-
-Lệnh này chạy `astro build` và sinh lại index tìm kiếm (Pagefind). Bài mới sẽ tự động
-xuất hiện ở trang chủ (3 bài gần nhất), trang `/blog/`, RSS feed, và sitemap — không
-phải sửa tay ở đâu cả.
-
-## Ghi chú
-
-- Tìm kiếm (Ctrl+K) chỉ chạy sau khi đã `npm run build` ít nhất một lần, vì index nằm trong `dist/`.
-- Pagefind chưa hỗ trợ tách từ (stemming) cho tiếng Việt, nên tìm kiếm khớp theo từ nguyên
-  dạng chứ không khớp các biến thể của cùng một từ gốc.
-- File `src/content/blog/example-post.md` là bài mẫu tiếng Anh của theme. Xoá khi không cần nữa.
+Website là **100% Static HTML/CSS/JS** nên có thể host miễn phí trên:
+- **Cloudflare Pages**: Kết nối repo GitHub ➔ Build command: `npm run build` ➔ Output directory: `dist`.
+- **Vercel**: Framework Preset: `Astro` ➔ Output directory: `dist`.
+- **GitHub Pages**: Dùng GitHub Actions có sẵn trong repo.

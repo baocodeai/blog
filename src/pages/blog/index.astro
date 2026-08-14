@@ -1,112 +1,320 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../components/Layout.astro';
-import TypedLede from '../../components/TypedLede.astro';
 
 const posts = (await getCollection('blog'))
   .filter((post) => !post.data.draft)
-  .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
+  .map((post) => ({
+    ...post,
+    slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, ''),
+    domain: post.data.domain || 'Detection',
+    stage: post.data.stage || 'Deep Dive',
+    specs: post.data.specs || []
+  }))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const allTags = [...new Set(posts.flatMap((post) => post.data.tags || []))].sort();
+// Extract unique tags for dropdown
+const allTags = [...new Set(posts.flatMap((p) => p.data.tags || []))].sort();
+
+// Featured post (first one or explicitly marked featured)
+const featuredPost = posts.find((p) => p.data.featured) || posts[0];
+const gridPosts = posts.filter((p) => p.slug !== featuredPost?.slug);
+
+// Domain filters matching user UI
+const filterDomains = [
+  { id: 'all', label: 'All' },
+  { id: 'Detection', label: 'Detection' },
+  { id: '3D Vision', label: '3D Vision' },
+  { id: 'VLM', label: 'VLM' },
+  { id: 'Deployment', label: 'Deployment' },
+  { id: 'Diffusion', label: 'Diffusion' },
+];
 ---
 
 <Layout
-  title="Blog — Your Name"
-  description="A short description of what you write about."
+  title="Blog & Research Notes — BaoNV"
+  description="Deep dives into Computer Vision, Paper Reproductions, and Real-time Edge Deployment logs."
   canonicalPath="/blog/"
 >
-  <main class="content-shell">
-    <section class="page-hero">
-      <h1 class="visually-hidden">Blog</h1>
-      <TypedLede text="A short description of what you write about." />
-    </section>
+  <main class="content-shell blog-page-shell">
+    
+    <!-- 1. TOP BAR: DOMAIN CHIPS + TAG DROPDOWN + INSTANT SEARCH -->
+    <section class="blog-top-bar" aria-label="Bộ lọc và tìm kiếm bài viết">
+      <div class="filter-chips-group" role="tablist" aria-label="Lọc theo lĩnh vực">
+        {filterDomains.map((dm, idx) => (
+          <button
+            class={`filter-chip-btn ${idx === 0 ? 'is-active' : ''}`}
+            data-domain={dm.id}
+            type="button"
+            role="tab"
+            aria-selected={idx === 0 ? 'true' : 'false'}
+          >
+            {dm.label}
+          </button>
+        ))}
+      </div>
 
-    <section class="section" aria-label="Blog posts">
-      {allTags.length > 0 && (
-        <div class="tags-filter">
-          <h3 class="tags-filter-title">Lọc theo kỹ năng:</h3>
-          <div class="tags-filter-list">
-            {allTags.map((tag) => (
-              <a href={`/tags/${tag}/`} class="tag-pill">
-                #{tag}
-              </a>
-            ))}
+      <div class="top-bar-controls-right">
+        <!-- TAGS SELECTOR DROPDOWN -->
+        <div class="tags-dropdown-wrapper">
+          <label for="blog-tag-select" class="visually-hidden">Lọc theo thẻ</label>
+          <div class="custom-select-box">
+            <svg class="select-tag-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+            <select id="blog-tag-select" class="blog-tag-select" aria-label="Chọn thẻ chuyên môn">
+              <option value="all">🏷️ Tất cả thẻ ({allTags.length})</option>
+              {allTags.map((tag) => {
+                const count = posts.filter((p) => p.data.tags?.includes(tag)).length;
+                return (
+                  <option value={tag.toLowerCase()}>#{tag} ({count})</option>
+                );
+              })}
+            </select>
+            <svg class="select-chevron-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
           </div>
         </div>
-      )}
 
-      {posts.length === 0 ? (
-        <p style="color: var(--muted); font-family: var(--mono);">No posts yet, check back soon.</p>
-      ) : (
-        <div class="post-list">
-          {posts.map((post, index) => (
-            <article class="post-card">
-              <a class="post-card-link" href={`/blog/${post.slug}/`}>
-                <div class="post-card-content">
-                  <h2>{post.data.title}{index === 0 && <span class="tag-latest">latest</span>}</h2>
-                  <p>{post.data.description}</p>
-                  <p class="post-card-meta">{post.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
-                </div>
-                {post.data.coverImage && (
-                  <div class="post-cover-container">
-                    <img class="post-cover-image" src={post.data.coverImage.src || post.data.coverImage} alt={post.data.title} />
-                  </div>
-                )}
-              </a>
-              {post.data.tags && post.data.tags.length > 0 && (
-                <div style="margin-top: 0.2rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                  {post.data.tags.map((tag: string) => (
-                    <a href={`/tags/${tag}/`} style="background: var(--bg-elevated); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--accent); font-family: var(--mono); text-decoration: none; position: relative; z-index: 2;">#{tag}</a>
-                  ))}
-                </div>
-              )}
-            </article>
-          ))}
+        <!-- SEARCH INPUT -->
+        <div class="search-box-wrapper">
+          <svg class="search-box-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="search"
+            id="blog-search-input"
+            class="blog-search-input"
+            placeholder="Tìm bài viết, kỹ năng..."
+            aria-label="Tìm bài viết"
+            autocomplete="off"
+          />
         </div>
-      )}
+      </div>
     </section>
+
+    <!-- 2. FEATURED POST CARD (WIDE 2-COL HERO) -->
+    {featuredPost && (
+      <section
+        class="featured-post-section"
+        id="featured-post-container"
+        data-domain={featuredPost.domain}
+        data-title={featuredPost.data.title.toLowerCase()}
+        data-desc={featuredPost.data.description.toLowerCase()}
+        data-tags={(featuredPost.data.tags || []).join(',').toLowerCase()}
+      >
+        <article class="featured-card">
+          <a href={`/blog/${featuredPost.slug}/`} class="featured-card-inner">
+            <div class="featured-cover-box">
+              {featuredPost.data.coverImage ? (
+                <img
+                  src={typeof featuredPost.data.coverImage === 'string' ? featuredPost.data.coverImage : featuredPost.data.coverImage.src}
+                  alt={featuredPost.data.title}
+                  class="featured-cover-img"
+                  loading="eager"
+                />
+              ) : (
+                <div class="cover-placeholder" />
+              )}
+            </div>
+
+            <div class="featured-content-box">
+              <div class="card-badges-row">
+                <span class="badge-featured">Featured</span>
+                <span class="badge-domain">{featuredPost.domain}</span>
+              </div>
+
+              <h2 class="featured-title">{featuredPost.data.title}</h2>
+              <p class="featured-excerpt">{featuredPost.data.description}</p>
+
+              <div class="card-meta-row">
+                <time datetime={featuredPost.data.date.toISOString()}>
+                  {featuredPost.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                </time>
+                {featuredPost.data.readingTime && (
+                  <>
+                    <span class="meta-dot">·</span>
+                    <span>{featuredPost.data.readingTime}</span>
+                  </>
+                )}
+                {featuredPost.data.category && (
+                  <>
+                    <span class="meta-dot">·</span>
+                    <span class="meta-category">{featuredPost.data.category}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </a>
+        </article>
+      </section>
+    )}
+
+    <!-- 3. UNIFORM CARD GRID -->
+    <section class="blog-grid-section" aria-label="Danh sách bài viết">
+      <div class="cv-posts-grid" id="cv-posts-grid">
+        {gridPosts.map((post) => (
+          <article
+            class="cv-post-card"
+            data-domain={post.domain}
+            data-title={post.data.title.toLowerCase()}
+            data-desc={post.data.description.toLowerCase()}
+            data-tags={(post.data.tags || []).join(',').toLowerCase()}
+          >
+            <a href={`/blog/${post.slug}/`} class="cv-card-link">
+              <div class="cv-card-cover-box">
+                {post.data.coverImage ? (
+                  <img
+                    src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src}
+                    alt={post.data.title}
+                    class="cv-card-cover-img"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="cover-placeholder" />
+                )}
+              </div>
+
+              <div class="cv-card-body">
+                <div class="cv-card-top-tags">
+                  <span class="badge-domain">{post.domain}</span>
+                </div>
+
+                <h3 class="cv-card-title">{post.data.title}</h3>
+                <p class="cv-card-desc">{post.data.description}</p>
+
+                <div class="cv-card-meta">
+                  <time datetime={post.data.date.toISOString()}>
+                    {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                  </time>
+                  {post.data.readingTime && (
+                    <>
+                      <span class="meta-dot">·</span>
+                      <span>{post.data.readingTime}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+
+      <div id="blog-empty-state" class="blog-empty-state" hidden>
+        <p>Không tìm thấy bài viết nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm.</p>
+        <button type="button" class="btn-reset-filters" id="btn-reset-filters">Đặt lại bộ lọc</button>
+      </div>
+    </section>
+
   </main>
 </Layout>
 
-<style>
-  .tags-filter {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--line);
+<script>
+  function setupCvBlogFilters() {
+    const chipBtns = document.querySelectorAll<HTMLButtonElement>('.filter-chip-btn');
+    const tagSelect = document.getElementById('blog-tag-select') as HTMLSelectElement | null;
+    const searchInput = document.getElementById('blog-search-input') as HTMLInputElement | null;
+    const featuredContainer = document.getElementById('featured-post-container');
+    const gridCards = document.querySelectorAll<HTMLElement>('.cv-post-card');
+    const emptyState = document.getElementById('blog-empty-state');
+    const resetBtn = document.getElementById('btn-reset-filters');
+
+    if (!gridCards.length && !featuredContainer) return;
+
+    let selectedDomain = 'all';
+    let selectedTag = 'all';
+    let searchQuery = '';
+
+    function filterPosts() {
+      let visibleCount = 0;
+      const q = searchQuery.trim().toLowerCase();
+
+      // 1. Filter Featured Post
+      if (featuredContainer) {
+        const fDomain = (featuredContainer.dataset.domain || '').toLowerCase();
+        const fTitle = featuredContainer.dataset.title || '';
+        const fDesc = featuredContainer.dataset.desc || '';
+        const fTags = (featuredContainer.dataset.tags || '').toLowerCase().split(',');
+        const fStage = (featuredContainer.dataset.stage || '').toLowerCase();
+
+        const domainMatch = selectedDomain === 'all' || fDomain === selectedDomain.toLowerCase();
+        const tagMatch = selectedTag === 'all' || fTags.includes(selectedTag) || fStage.includes(selectedTag);
+        const searchMatch = !q || fTitle.includes(q) || fDesc.includes(q) || fDomain.includes(q) || fStage.includes(q) || fTags.some(t => t.includes(q));
+
+        if (domainMatch && tagMatch && searchMatch) {
+          featuredContainer.style.display = '';
+          visibleCount++;
+        } else {
+          featuredContainer.style.display = 'none';
+        }
+      }
+
+      // 2. Filter Grid Posts
+      gridCards.forEach((card) => {
+        const cDomain = (card.dataset.domain || '').toLowerCase();
+        const cTitle = card.dataset.title || '';
+        const cDesc = card.dataset.desc || '';
+        const cTags = (card.dataset.tags || '').toLowerCase().split(',');
+        const cStage = (card.dataset.stage || '').toLowerCase();
+
+        const domainMatch = selectedDomain === 'all' || cDomain === selectedDomain.toLowerCase();
+        const tagMatch = selectedTag === 'all' || cTags.includes(selectedTag) || cStage.includes(selectedTag);
+        const searchMatch = !q || cTitle.includes(q) || cDesc.includes(q) || cDomain.includes(q) || cStage.includes(q) || cTags.some(t => t.includes(q));
+
+        if (domainMatch && tagMatch && searchMatch) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (emptyState) {
+        emptyState.hidden = visibleCount > 0;
+      }
+    }
+
+    chipBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        chipBtns.forEach((b) => {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-selected', 'true');
+        selectedDomain = btn.dataset.domain || 'all';
+        filterPosts();
+      });
+    });
+
+    tagSelect?.addEventListener('change', (e) => {
+      selectedTag = (e.target as HTMLSelectElement).value;
+      filterPosts();
+    });
+
+    searchInput?.addEventListener('input', (e) => {
+      searchQuery = (e.target as HTMLInputElement).value;
+      filterPosts();
+    });
+
+    resetBtn?.addEventListener('click', () => {
+      selectedDomain = 'all';
+      selectedTag = 'all';
+      searchQuery = '';
+      if (searchInput) searchInput.value = '';
+      if (tagSelect) tagSelect.value = 'all';
+
+      chipBtns.forEach((b, idx) => {
+        b.classList.toggle('is-active', idx === 0);
+        b.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
+      });
+
+      filterPosts();
+    });
   }
-  .tags-filter-title {
-    font-family: var(--sans);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: var(--muted);
-  }
-  .tags-filter-list {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-  .tag-pill {
-    display: inline-flex;
-    align-items: center;
-    background: transparent;
-    border: 1px solid var(--line-strong);
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px; /* Pill shape */
-    font-size: 0.8rem;
-    color: var(--ink-soft);
-    font-family: var(--mono);
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .tag-pill:hover {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--accent-soft);
-  }
-</style>
+
+  document.addEventListener('astro:page-load', setupCvBlogFilters);
+</script>

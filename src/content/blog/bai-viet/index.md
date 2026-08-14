@@ -2,7 +2,7 @@
 title: "Tiêu đề bài viết, có dấu bình thường"
 description: "Một câu tóm tắt bài viết. Câu này hiện ở trang /blog/, trong kết quả tìm kiếm và khi chia sẻ link."
 date: 2026-08-08
-draft: false
+draft: true
 tags: ["Astro", "Blog"]
 coverImage: "./og.png"
 ---
