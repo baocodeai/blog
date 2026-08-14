@@ -3,6 +3,9 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { unified } from '@astrojs/markdown-remark';
 
 // Serve the Pagefind index from dist/ during `astro dev`, so search works
 // in dev after at least one `npm run build`.
@@ -42,6 +45,10 @@ export default defineConfig({
   // Pagefind's text extraction of adjacent spans (e.g. job titles + dates).
   compressHTML: true,
   markdown: {
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
     // Emit --astro-code-* variables instead of fixed hex colors, so code
     // blocks follow the active palette (defined in public/css/style.css).
     shikiConfig: { theme: 'css-variables' },
