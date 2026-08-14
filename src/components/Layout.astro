@@ -62,8 +62,8 @@ const currentPath = Astro.url.pathname;
         const apply = () => {
           const saved = localStorage.getItem('site-palette');
           const system = window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'vesper'
-            : 'rose-pine-dawn';
+            ? 'tokyo-night'
+            : 'tokyo-night-day';
           document.documentElement.setAttribute('data-palette', saved || system);
         };
         apply();
@@ -431,7 +431,7 @@ const currentPath = Astro.url.pathname;
         let committed = saved || defaultPalette();
 
         function defaultPalette() {
-          return media.matches ? 'vesper' : 'rose-pine-dawn';
+          return media.matches ? 'tokyo-night' : 'tokyo-night-day';
         }
 
         function setPalette(value: string) {
