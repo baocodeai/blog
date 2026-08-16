@@ -6,7 +6,6 @@ draft: false
 featured: false
 category: MLOps
 domain: MLOps Architecture
-stage: Production & Pipeline
 specs:
   - End-to-End MLOps
   - Architecture
