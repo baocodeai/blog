@@ -7,7 +7,7 @@ category: "Deep Dives"
 domain: "3D Vision"
 stage: "Math & Architecture"
 specs: ["🔬 1.48M Splats", "⚡ CUDA Tile Rasterizer", "📐 Covariance Math"]
-coverImage: "/covers/3dgs-render.svg"
+coverImage: "../../assets/covers/3dgs-render.svg"
 tags: ["3D Vision", "Gaussian Splatting", "CUDA", "Math", "Deep Dives", "Rasterization"]
 readingTime: "14 min read"
 ---

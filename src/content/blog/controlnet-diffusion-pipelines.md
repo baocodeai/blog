@@ -7,7 +7,7 @@ category: "Paper Reproductions"
 domain: "Diffusion"
 stage: "Training & LoRA"
 specs: ["🎨 Canny Condition", "⚙️ LoRA Rank-16", "🧪 CFG Scale 7.5"]
-coverImage: "/covers/controlnet-diffusion.svg"
+coverImage: "../../assets/covers/controlnet-diffusion.svg"
 tags: ["Diffusion", "Generative AI", "ControlNet", "LoRA", "Training & LoRA", "Stable Diffusion", "Paper Reproduction"]
 readingTime: "12 min read"
 ---

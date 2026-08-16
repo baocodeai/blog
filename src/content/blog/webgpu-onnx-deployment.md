@@ -7,7 +7,7 @@ category: "Deployment Logs"
 domain: "Deployment"
 stage: "Edge Deployment"
 specs: ["🌐 WebGPU WGSL", "📦 ONNX INT8", "⚡ 60 FPS Browser"]
-coverImage: "/covers/webgpu-runtime.svg"
+coverImage: "../../assets/covers/webgpu-runtime.svg"
 tags: ["Deployment", "WebGPU", "ONNX", "Quantization", "Deployment Logs", "Edge AI", "C++"]
 readingTime: "11 min read"
 ---

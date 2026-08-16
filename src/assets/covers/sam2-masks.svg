@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg-sam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#031525"/>
+      <stop offset="100%" stop-color="#0b2440"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg-sam)"/>
+  
+  <!-- Segmentation Mask Shapes -->
+  <!-- Object 1 Mask (Cyan) -->
+  <path d="M 220,180 C 260,110 360,120 400,160 C 440,200 450,290 390,340 C 330,380 240,360 200,300 C 170,250 190,220 220,180 Z" fill="rgba(6, 182, 212, 0.55)" stroke="#22d3ee" stroke-width="3"/>
+  <!-- Object 2 Mask (Magenta) -->
+  <path d="M 420,160 C 470,120 560,140 590,190 C 620,240 600,320 540,350 C 480,380 440,330 420,270 C 400,220 390,190 420,160 Z" fill="rgba(217, 70, 239, 0.55)" stroke="#e879f9" stroke-width="3"/>
+
+  <!-- Interactive Prompt Points (Positive clicks +) -->
+  <g>
+    <circle cx="310" cy="230" r="10" fill="#22c55e" stroke="#ffffff" stroke-width="2"/>
+    <line x1="310" y1="225" x2="310" y2="235" stroke="#ffffff" stroke-width="2"/>
+    <line x1="305" y1="230" x2="315" y2="230" stroke="#ffffff" stroke-width="2"/>
+    <text x="328" y="235" fill="#4ade80" font-family="monospace" font-size="12" font-weight="700">Positive (+1)</text>
+
+    <!-- Negative click - -->
+    <circle cx="490" cy="240" r="10" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+    <line x1="485" y1="240" x2="495" y2="240" stroke="#ffffff" stroke-width="2"/>
+    <text x="508" y="245" fill="#f87171" font-family="monospace" font-size="12" font-weight="700">Negative (-1)</text>
+  </g>
+
+  <!-- Video timeline frames preview at bottom -->
+  <rect x="150" y="380" width="500" height="45" rx="6" fill="rgba(15, 23, 42, 0.85)" stroke="#334155" stroke-width="1"/>
+  <rect x="220" y="385" width="40" height="35" rx="3" fill="#0284c7" opacity="0.8"/>
+  <rect x="270" y="385" width="40" height="35" rx="3" fill="#0284c7" opacity="0.6"/>
+  <rect x="320" y="385" width="40" height="35" rx="3" fill="#0284c7" opacity="0.9" stroke="#38bdf8" stroke-width="2"/>
+  <rect x="370" y="385" width="40" height="35" rx="3" fill="#0284c7" opacity="0.6"/>
+  <rect x="420" y="385" width="40" height="35" rx="3" fill="#0284c7" opacity="0.5"/>
+  <text x="480" y="407" fill="#94a3b8" font-family="monospace" font-size="12">Memory Bank: 16 Frames</text>
+
+  <!-- HUD -->
+  <rect x="25" y="25" width="200" height="42" rx="6" fill="rgba(15, 23, 42, 0.85)" stroke="#334155" stroke-width="1"/>
+  <text x="40" y="44" fill="#38bdf8" font-family="monospace" font-size="11">MASK PROPAGATION</text>
+  <text x="40" y="58" fill="#f8fafc" font-family="monospace" font-size="13" font-weight="700">44.8 FPS Streaming</text>
+</svg>

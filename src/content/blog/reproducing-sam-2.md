@@ -7,7 +7,7 @@ category: "Paper Reproductions"
 domain: "VLM"
 stage: "Data & Preprocessing"
 specs: ["🎬 Streaming Memory", "🎯 Interactive Masks", "🔄 Video Propagate"]
-coverImage: "/covers/sam2-masks.svg"
+coverImage: "../../assets/covers/sam2-masks.svg"
 tags: ["VLM", "SAM 2", "Video Segmentation", "Data & Preprocessing", "PyTorch", "Paper Reproduction"]
 readingTime: "9 min read"
 ---

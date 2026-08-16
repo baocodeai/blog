@@ -8,7 +8,7 @@ domain: "Detection"
 stage: "Deployment & Benchmark"
 specs: ["⚡ 120 FPS", "📦 TensorRT FP16", "🎯 ByteTrack"]
 featured: true
-coverImage: "/covers/yolo-detection.svg"
+coverImage: "../../assets/covers/yolo-detection.svg"
 tags: ["Detection", "Object Detection", "Tracking", "ByteTrack", "YOLOv11", "TensorRT", "Edge AI", "Deployment"]
 readingTime: "8 min read"
 ---

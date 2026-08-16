@@ -7,7 +7,7 @@ category: "Deep Dives"
 domain: "VLM"
 stage: "Data & Preprocessing"
 specs: ["🔍 Visual Grounding", "🏷️ <OD_BOX> Prompts", "📚 RAG Vector Index"]
-coverImage: "/covers/florence-vlm.svg"
+coverImage: "../../assets/covers/florence-vlm.svg"
 tags: ["VLM", "Multimodal", "Vision-Language", "Florence-2", "Data & Preprocessing", "CLIP", "Visual RAG", "Deep Dives"]
 readingTime: "10 min read"
 ---
