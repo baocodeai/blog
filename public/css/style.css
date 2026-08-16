@@ -2329,8 +2329,8 @@ button.nav-icon-link {
 
 .post-card-thumb-area {
     position: relative;
-    height: 120px;
-    background: color-mix(in srgb, var(--line) 35%, var(--bg-elevated));
+    height: 140px;
+    background: var(--bg-overlay);
     border-bottom: 1px solid var(--line);
     padding: 0.85rem;
     display: flex;
@@ -2339,16 +2339,36 @@ button.nav-icon-link {
     overflow: hidden;
 }
 
+.post-card-cover-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
+}
+
+.recent-post-card:hover .post-card-cover-img {
+    transform: scale(1.05);
+}
+
 .post-thumb-category-tag {
+    position: relative;
+    z-index: 2;
     align-self: flex-start;
-    padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    border: 1px solid var(--line);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--line-strong);
     color: var(--accent);
     font-family: var(--mono);
     font-size: 0.72rem;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .post-thumb-abstract-visual {

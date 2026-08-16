@@ -298,13 +298,22 @@ const personSchema = JSON.stringify({
           <article class="recent-post-card">
             <a class="post-card-full-link" href={`/blog/${post.slug}/`}>
               <div class="post-card-thumb-area">
+                {post.data.coverImage ? (
+                  <img
+                    src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src}
+                    alt={post.data.title}
+                    class="post-card-cover-img"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="post-thumb-abstract-visual">
+                    <div class="visual-node node-a"></div>
+                    <div class="visual-node node-b"></div>
+                    <div class="visual-edge"></div>
+                  </div>
+                )}
                 <div class="post-thumb-category-tag">
                   {post.data.category || (post.data.tags[0] ?? "Deep Dives")}
-                </div>
-                <div class="post-thumb-abstract-visual">
-                  <div class="visual-node node-a"></div>
-                  <div class="visual-node node-b"></div>
-                  <div class="visual-edge"></div>
                 </div>
               </div>
 
