@@ -9,7 +9,7 @@ domain: MLOps Architecture
 specs:
   - End-to-End MLOps
   - Architecture
-coverImage: ./cover.png
+coverImage: "/covers/mlops-workflow.png"
 tags:
   - MLOps
   - Machine Learning
