@@ -22,11 +22,11 @@ Trong phát triển phần mềm ứng dụng trí tuệ nhân tạo (AI/ML), c�
 
 ---
 
-## Toàn cảnh Vòng đời MLOps (End-to-End Workflow)
+## Vòng đời MLOps (End-to-End Workflow)
 
 MLOps là sự kết hợp giữa Machine Learning, Data Engineering và DevOps nhằm xây dựng, tự động hóa và duy trì các pipeline AI liên tục, đáng tin cậy.
 
-![Toàn cảnh quy trình MLOps từ Business Problem đến Code Engineering](./mlops-workflow.png)
+![Quy trình MLOps từ Business Problem đến Code Engineering](./mlops-workflow.png)
 
 Một chu trình MLOps hoàn chỉnh bao gồm 4 trụ cột nối tiếp nhau:
 1. **Business Problem**: Xác định và mô hình hóa bài toán kinh doanh thành bài toán kỹ thuật.
