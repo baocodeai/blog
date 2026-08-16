@@ -3,14 +3,14 @@ title: Quy trình MLOps và cấu trúc thư mục dự án Machine Learning
 description: Hướng dẫn chi tiết từ bài toán kinh doanh (Business Scoping), Data & Model Engineering đến Serving Patterns, Observability và cấu trúc mã nguồn tối ưu cho hệ thống AI thực chiến.
 date: 2026-08-05
 draft: false
-featured: true
-category: MLOps & Engineering
+featured: false
+category: MLOps
 domain: MLOps Architecture
 stage: Production & Pipeline
 specs:
   - End-to-End MLOps
   - Architecture
-coverImage: ./mlops-workflow.png
+coverImage: ./cover.png
 tags:
   - MLOps
   - Machine Learning
