@@ -180,3 +180,7 @@ Mở trình duyệt: `http://localhost:4321` — Bạn chỉ cần nhấn `Ctrl 
    git push origin main
    ```
 2. Nếu bạn đã kết nối **Vercel** hoặc **GitHub Actions**, website sẽ tự động build và cập nhật bài viết mới lên mạng trong vòng 1 phút!
+
+
+Kích thước ảnh: 
+Chuẩn tối ưu nhất (Khuyên dùng)	16:9	1200 × 675 px

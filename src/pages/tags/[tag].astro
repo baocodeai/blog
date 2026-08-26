@@ -5,14 +5,29 @@ import TypedLede from '../../components/TypedLede.astro';
 
 export async function getStaticPaths() {
   const allPosts = await getCollection('blog');
-  const uniqueTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
+  const allProjects = await getCollection('projects');
+
+  const domainTags = [
+    'Computer Vision',
+    'MLOps',
+    '3D Vision',
+    'Detection',
+    'Edge AI',
+    'Segmentation',
+    'Image Processing',
+    'CLAHE',
+  ];
+
+  const blogTags = allPosts.flatMap((post) => post.data.tags || []);
+  const projectTags = allProjects.flatMap((p) => p.data.techStack || []);
+  const uniqueTags = [...new Set([...domainTags, ...blogTags, ...projectTags])];
 
   return uniqueTags.map((tag) => {
     const filteredPosts = allPosts
       .filter((post) => post.data.tags?.includes(tag) && !post.data.draft)
       .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
       .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-      
+
     return {
       params: { tag },
       props: { posts: filteredPosts },

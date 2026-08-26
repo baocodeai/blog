@@ -5,7 +5,7 @@ date: 2026-08-05
 draft: false
 featured: false
 category: MLOps
-domain: MLOps Architecture
+domain: MLOps
 specs:
   - End-to-End MLOps
   - Architecture
