@@ -7,7 +7,7 @@ const posts = (await getCollection('blog'))
   .map((post) => ({
     ...post,
     slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, ''),
-    domain: post.data.domain || 'Detection',
+    domain: post.data.domain || 'Computer Vision',
     stage: post.data.stage || 'Deep Dive',
     specs: post.data.specs || []
   }))
@@ -20,15 +20,15 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags || []))].sort();
 const featuredPost = posts.find((p) => p.data.featured) || posts[0];
 const gridPosts = posts.filter((p) => p.slug !== featuredPost?.slug);
 
-// Domain filters matching user UI
+// Domain filters matching the 6 core CV domains
 const filterDomains = [
   { id: 'all', label: 'All' },
-  { id: 'Computer Vision', label: 'Computer Vision' },
-  { id: 'MLOps', label: 'MLOps' },
+  { id: 'Computer Vision', label: 'Classical CV' },
+  { id: 'Deep Learning', label: 'Deep Learning' },
+  { id: 'Detection & Tracking', label: 'Detection & Tracking' },
   { id: '3D Vision', label: '3D Vision' },
-  { id: 'Detection', label: 'Detection' },
-  { id: 'Edge AI', label: 'Edge AI' },
-  { id: 'Segmentation', label: 'Segmentation' },
+  { id: 'Generative AI', label: 'Generative AI' },
+  { id: 'MLOps', label: 'MLOps' },
 ];
 ---
 
@@ -241,8 +241,8 @@ const filterDomains = [
         const fTags = (featuredContainer.dataset.tags || '').toLowerCase().split(',');
         const fStage = (featuredContainer.dataset.stage || '').toLowerCase();
 
-        const domainMatch = selectedDomain === 'all' || fDomain === selectedDomain.toLowerCase();
-        const tagMatch = selectedTag === 'all' || fTags.includes(selectedTag) || fStage.includes(selectedTag);
+        const domainMatch = selectedDomain === 'all' || fDomain === selectedDomain.toLowerCase() || fTags.includes(selectedDomain.toLowerCase());
+        const tagMatch = selectedTag === 'all' || fTags.includes(selectedTag.toLowerCase()) || fStage.includes(selectedTag.toLowerCase());
         const searchMatch = !q || fTitle.includes(q) || fDesc.includes(q) || fDomain.includes(q) || fStage.includes(q) || fTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {
@@ -261,8 +261,8 @@ const filterDomains = [
         const cTags = (card.dataset.tags || '').toLowerCase().split(',');
         const cStage = (card.dataset.stage || '').toLowerCase();
 
-        const domainMatch = selectedDomain === 'all' || cDomain === selectedDomain.toLowerCase();
-        const tagMatch = selectedTag === 'all' || cTags.includes(selectedTag) || cStage.includes(selectedTag);
+        const domainMatch = selectedDomain === 'all' || cDomain === selectedDomain.toLowerCase() || cTags.includes(selectedDomain.toLowerCase());
+        const tagMatch = selectedTag === 'all' || cTags.includes(selectedTag.toLowerCase()) || cStage.includes(selectedTag.toLowerCase());
         const searchMatch = !q || cTitle.includes(q) || cDesc.includes(q) || cDomain.includes(q) || cStage.includes(q) || cTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {

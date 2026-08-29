@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg-dl" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="100%" stop-color="#181825"/>
+    </linearGradient>
+    <filter id="glow-dl" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg-dl)"/>
+
+  <!-- Background Mesh Lines -->
+  <g opacity="0.1" stroke="#818cf8" stroke-width="1">
+    <line x1="0" y1="90" x2="800" y2="90"/>
+    <line x1="0" y1="180" x2="800" y2="180"/>
+    <line x1="0" y1="270" x2="800" y2="270"/>
+    <line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="160" y1="0" x2="160" y2="450"/>
+    <line x1="320" y1="0" x2="320" y2="450"/>
+    <line x1="480" y1="0" x2="480" y2="450"/>
+    <line x1="640" y1="0" x2="640" y2="450"/>
+  </g>
+
+  <!-- Vision Transformer (ViT) & CNN Feature Maps Diagram -->
+  <g transform="translate(70, 110)" filter="url(#glow-dl)">
+    <!-- Image Patches (ViT Patch Embedding) -->
+    <g transform="translate(0, 40)">
+      <rect width="130" height="130" rx="8" fill="rgba(30, 41, 59, 0.8)" stroke="#6366f1" stroke-width="1.5"/>
+      <line x1="43" y1="0" x2="43" y2="130" stroke="#6366f1" stroke-width="1" stroke-dasharray="2,2"/>
+      <line x1="86" y1="0" x2="86" y2="130" stroke="#6366f1" stroke-width="1" stroke-dasharray="2,2"/>
+      <line x1="0" y1="43" x2="130" y2="43" stroke="#6366f1" stroke-width="1" stroke-dasharray="2,2"/>
+      <line x1="0" y1="86" x2="130" y2="86" stroke="#6366f1" stroke-width="1" stroke-dasharray="2,2"/>
+      <text x="65" y="160" fill="#a5b4fc" font-family="monospace" font-size="11" font-weight="700" text-anchor="middle">16x16 PATCHES</text>
+    </g>
+
+    <!-- Flow Arrow 1 -->
+    <path d="M 155 105 L 205 105" stroke="#818cf8" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <polygon points="205,100 215,105 205,110" fill="#818cf8"/>
+
+    <!-- Multi-Head Self-Attention Block -->
+    <g transform="translate(230, 20)">
+      <rect width="190" height="170" rx="10" fill="rgba(15, 23, 42, 0.9)" stroke="#a855f7" stroke-width="2"/>
+      <text x="95" y="30" fill="#c084fc" font-family="monospace" font-size="12" font-weight="700" text-anchor="middle">MULTI-HEAD ATTENTION</text>
+      
+      <!-- Attention Weight Matrix Graphic -->
+      <g transform="translate(30, 48)">
+        <rect x="0" y="0" width="28" height="28" fill="#a855f7" opacity="0.9" rx="3"/>
+        <rect x="34" y="0" width="28" height="28" fill="#a855f7" opacity="0.3" rx="3"/>
+        <rect x="68" y="0" width="28" height="28" fill="#a855f7" opacity="0.7" rx="3"/>
+        <rect x="102" y="0" width="28" height="28" fill="#a855f7" opacity="0.2" rx="3"/>
+
+        <rect x="0" y="34" width="28" height="28" fill="#a855f7" opacity="0.2" rx="3"/>
+        <rect x="34" y="34" width="28" height="28" fill="#a855f7" opacity="0.8" rx="3"/>
+        <rect x="68" y="34" width="28" height="28" fill="#a855f7" opacity="0.4" rx="3"/>
+        <rect x="102" y="34" width="28" height="28" fill="#a855f7" opacity="0.6" rx="3"/>
+
+        <rect x="0" y="68" width="28" height="28" fill="#a855f7" opacity="0.5" rx="3"/>
+        <rect x="34" y="68" width="28" height="28" fill="#a855f7" opacity="0.1" rx="3"/>
+        <rect x="68" y="68" width="28" height="28" fill="#a855f7" opacity="0.9" rx="3"/>
+        <rect x="102" y="68" width="28" height="28" fill="#a855f7" opacity="0.3" rx="3"/>
+      </g>
+    </g>
+
+    <!-- Flow Arrow 2 -->
+    <path d="M 440 105 L 490 105" stroke="#818cf8" stroke-width="2.5"/>
+    <polygon points="490,100 500,105 490,110" fill="#818cf8"/>
+
+    <!-- Latent Representation / Features -->
+    <g transform="translate(520, 25)">
+      <rect width="140" height="160" rx="8" fill="rgba(30, 41, 59, 0.85)" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="70" y="28" fill="#38bdf8" font-family="monospace" font-size="11" font-weight="700" text-anchor="middle">LATENT TOKENS</text>
+      
+      <circle cx="45" cy="65" r="14" fill="#3b82f6" opacity="0.8"/>
+      <circle cx="95" cy="65" r="14" fill="#ec4899" opacity="0.8"/>
+      <circle cx="70" cy="115" r="18" fill="#22c55e" opacity="0.8"/>
+      <text x="70" y="120" fill="#fff" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">cls</text>
+    </g>
+  </g>
+
+  <!-- Top Badges -->
+  <rect x="25" y="25" width="240" height="34" rx="6" fill="rgba(15, 23, 42, 0.9)" stroke="#818cf8" stroke-width="1"/>
+  <text x="38" y="47" fill="#818cf8" font-family="monospace" font-size="12" font-weight="700">ViT / Swin / ResNet / ConvNeXt</text>
+
+  <rect x="625" y="25" width="150" height="34" rx="6" fill="rgba(30, 41, 59, 0.9)" stroke="#475569" stroke-width="1"/>
+  <text x="638" y="47" fill="#e2e8f0" font-family="monospace" font-size="12" font-weight="700">PyTorch / Timm</text>
+</svg>

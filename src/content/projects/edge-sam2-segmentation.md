@@ -5,7 +5,7 @@ date: 2026-06-18
 draft: false
 featured: true
 badge: "Benchmark + Demo"
-domain: "Foundation Models"
+domain: "Detection & Tracking"
 techStack: ["SAM 2", "TensorRT", "PyTorch", "C++20", "OpenCV"]
 demoUrl: "https://baocodeai.github.io/projects/edge-sam2-segmentation/"
 repoUrl: "https://github.com/baocodeai/edge-sam2"

@@ -9,22 +9,30 @@ export async function getStaticPaths() {
 
   const domainTags = [
     'Computer Vision',
-    'MLOps',
+    'Classical CV',
+    'Deep Learning',
+    'Detection & Tracking',
     '3D Vision',
-    'Detection',
+    'Generative AI',
+    'MLOps',
     'Edge AI',
-    'Segmentation',
     'Image Processing',
     'CLAHE',
   ];
 
-  const blogTags = allPosts.flatMap((post) => post.data.tags || []);
-  const projectTags = allProjects.flatMap((p) => p.data.techStack || []);
+  const blogTags = allPosts.flatMap((post) => [
+    ...(post.data.tags || []),
+    ...(post.data.domain ? [post.data.domain] : [])
+  ]);
+  const projectTags = allProjects.flatMap((p) => [
+    ...(p.data.techStack || []),
+    ...(p.data.domain ? [p.data.domain] : [])
+  ]);
   const uniqueTags = [...new Set([...domainTags, ...blogTags, ...projectTags])];
 
   return uniqueTags.map((tag) => {
     const filteredPosts = allPosts
-      .filter((post) => post.data.tags?.includes(tag) && !post.data.draft)
+      .filter((post) => (post.data.tags?.includes(tag) || post.data.domain?.toLowerCase() === tag.toLowerCase()) && !post.data.draft)
       .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
       .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 

@@ -5,7 +5,7 @@ date: 2026-07-25
 draft: false
 featured: true
 badge: "Live Demo"
-domain: "3D Vision & NeRF"
+domain: "3D Vision"
 techStack: ["3DGS", "WebGPU", "Three.js", "CUDA", "C++"]
 demoUrl: "https://baocodeai.github.io/projects/gaussian-splatting-viewer/"
 repoUrl: "https://github.com/baocodeai/3dgs-web-viewer"

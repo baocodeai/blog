@@ -5,7 +5,7 @@ date: 2026-08-10
 draft: false
 featured: true
 badge: "Live Demo"
-domain: "Real-time Edge AI"
+domain: "MLOps"
 techStack: ["WebGPU", "ONNX Runtime", "YOLOv11", "ByteTrack", "TypeScript"]
 demoUrl: "https://baocodeai.github.io/projects/webgpu-yolo-tracker/"
 repoUrl: "https://github.com/baocodeai/webgpu-yolo-tracker"
