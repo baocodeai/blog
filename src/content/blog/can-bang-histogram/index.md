@@ -4,14 +4,14 @@ description: "Phân tích nguyên lý toán học, so sánh trực quan và hư�
 date: 2026-08-25
 draft: false
 featured: false
-category: "Image Processing"
-domain: "Computer Vision"
+category: "Enhancement"
+domain: "Classical"
 stage: "Deep Dives"
 specs:
   - "OpenCV & NumPy"
   - "HE / AHE / CLAHE"
   - "CIELAB Color Space"
-coverImage: "./clahe-color-result.png"
+coverImage: "./cover.png"
 tags:
   - "Image Processing"
   - "Segmentation"

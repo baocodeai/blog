@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import 'katex/dist/katex.min.css';
+import CosmosBackground from './CosmosBackground.astro';
 
 interface Props {
   title: string;
@@ -74,6 +75,7 @@ const currentPath = Astro.url.pathname;
     <ClientRouter />
   </head>
   <body>
+    <CosmosBackground />
     <header class="site-header">
       <nav class="nav" aria-label="Primary navigation">
         <a class="brand" href="/" aria-label="BaoNV - Home">

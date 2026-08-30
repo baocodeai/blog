@@ -1,0 +1,526 @@
+---
+// PointCloudBackground.astro - Global 3D Interactive Point Cloud & LiDAR Depth Wave
+---
+
+<div class="global-point-cloud-wrapper" id="global-point-cloud-container" aria-hidden="true">
+  <!-- Glowing Ambient Aurora Backdrops -->
+  <div class="aurora-ambient-layer"></div>
+  <div class="aurora-mouse-spotlight" id="aurora-spotlight"></div>
+  <div class="cyber-grid-overlay"></div>
+
+  <!-- Fullscreen 3D Point Cloud Canvas -->
+  <canvas id="cv-global-canvas" class="global-canvas"></canvas>
+</div>
+
+<style>
+  .global-point-cloud-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    background: transparent;
+  }
+
+  /* Multi-color deep ambient aurora */
+  .aurora-ambient-layer {
+    position: absolute;
+    inset: -30%;
+    background: 
+      radial-gradient(circle 700px at 15% 20%, rgba(122, 162, 247, 0.35) 0%, transparent 65%),
+      radial-gradient(circle 750px at 85% 35%, rgba(187, 154, 247, 0.30) 0%, transparent 65%),
+      radial-gradient(circle 800px at 50% 85%, rgba(115, 218, 202, 0.25) 0%, transparent 70%),
+      radial-gradient(circle 600px at 75% 90%, rgba(247, 118, 142, 0.20) 0%, transparent 65%);
+    filter: blur(75px);
+    opacity: 0.9;
+    animation: ambient-pulse 16s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  @keyframes ambient-pulse {
+    0% {
+      transform: scale(1) translate(0, 0);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.1) translate(-2%, 2%);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.05) translate(2%, -3%);
+      opacity: 0.85;
+    }
+  }
+
+  /* Dynamic Mouse Follow Spotlight */
+  .aurora-mouse-spotlight {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle 450px at var(--mouse-screen-x, 50%) var(--mouse-screen-y, 40%),
+      rgba(122, 162, 247, 0.32) 0%,
+      rgba(187, 154, 247, 0.22) 35%,
+      transparent 70%
+    );
+    filter: blur(40px);
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  /* High-tech dot matrix overlay */
+  .cyber-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(122, 162, 247, 0.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.6;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, #000 65%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 50%, #000 65%, transparent 100%);
+  }
+
+  .global-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  function initGlobalPointCloud() {
+    const canvas = document.getElementById('cv-global-canvas') as HTMLCanvasElement | null;
+    const spotlight = document.getElementById('aurora-spotlight');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    let animId: number;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    // Mouse tracking with velocity & smoothing
+    const mouse = {
+      x: window.innerWidth * 0.5,
+      y: window.innerHeight * 0.35,
+      targetX: window.innerWidth * 0.5,
+      targetY: window.innerHeight * 0.35,
+      vx: 0,
+      vy: 0,
+      speed: 0,
+      radius: 300,
+      isHovered: false
+    };
+
+    // Scroll parallax tracking
+    let scrollY = window.scrollY || 0;
+    let targetScrollY = scrollY;
+
+    // 3D Point Grid Settings
+    let rows = 34;
+    let cols = 60;
+    let points: {
+      x0: number; // base 3D X
+      y0: number; // base 3D Y
+      z0: number; // base 3D Z
+      currentY: number;
+      vy: number;
+      wavePhase: number;
+      size: number;
+      colorT: number;
+    }[] = [];
+
+    // Floating 3D Spark Particles (Keypoints)
+    let floatingSparks: {
+      x: number;
+      y: number;
+      z: number;
+      vx: number;
+      vy: number;
+      vz: number;
+      size: number;
+      alpha: number;
+      baseColorT: number;
+    }[] = [];
+
+    function setupScene() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.scale(dpr, dpr);
+
+      // Adaptive grid density
+      if (width < 640) {
+        cols = 34;
+        rows = 24;
+      } else if (width < 1100) {
+        cols = 48;
+        rows = 30;
+      } else {
+        cols = 64;
+        rows = 36;
+      }
+
+      points = [];
+      const spacingX = (width * 1.7) / cols;
+      const spacingZ = (height * 1.9) / rows;
+      const startX = -width * 0.35;
+      const startZ = -height * 0.25;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const u = c / cols;
+          const v = r / rows;
+
+          points.push({
+            x0: startX + c * spacingX,
+            y0: 0,
+            z0: startZ + r * spacingZ,
+            currentY: 0,
+            vy: 0,
+            wavePhase: u * 5.2 + v * 3.8,
+            size: 1.5 + Math.random() * 1.2,
+            colorT: (u * 0.55 + v * 0.45) % 1
+          });
+        }
+      }
+
+      // Generate floating 3D keypoint sparks
+      const sparkCount = width < 768 ? 30 : 65;
+      floatingSparks = [];
+      for (let i = 0; i < sparkCount; i++) {
+        floatingSparks.push({
+          x: (Math.random() - 0.5) * width * 1.5,
+          y: (Math.random() - 0.5) * height * 1.0,
+          z: 80 + Math.random() * 750,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.4,
+          vz: (Math.random() - 0.5) * 0.3,
+          size: 1.6 + Math.random() * 2.2,
+          alpha: 0.35 + Math.random() * 0.55,
+          baseColorT: Math.random()
+        });
+      }
+    }
+
+    // Color gradient interpolation:
+    // 0.0: Electric Cyan (#7aa2f7) -> 0.33: Neon Violet (#bb9af7) -> 0.66: Emerald (#73daca) -> 1.0: Laser Pink (#f7768e)
+    function getPointColor(t: number, alpha: number, boost = 0) {
+      let r = 122, g = 162, b = 247;
+      const clampedT = (t % 1 + 1) % 1;
+
+      if (clampedT < 0.33) {
+        const factor = clampedT / 0.33;
+        r = Math.round(122 + (187 - 122) * factor);
+        g = Math.round(162 + (154 - 162) * factor);
+        b = Math.round(247);
+      } else if (clampedT < 0.66) {
+        const factor = (clampedT - 0.33) / 0.33;
+        r = Math.round(187 + (115 - 187) * factor);
+        g = Math.round(154 + (218 - 154) * factor);
+        b = Math.round(247 + (202 - 247) * factor);
+      } else {
+        const factor = (clampedT - 0.66) / 0.34;
+        r = Math.round(115 + (247 - 115) * factor);
+        g = Math.round(218 + (118 - 218) * factor);
+        b = Math.round(202 + (142 - 202) * factor);
+      }
+
+      if (boost > 0) {
+        r = Math.min(255, Math.round(r + (255 - r) * boost));
+        g = Math.min(255, Math.round(g + (255 - g) * boost));
+        b = Math.min(255, Math.round(b + (255 - b) * boost));
+      }
+
+      return `rgba(${r}, ${g}, ${b}, ${Math.min(1, alpha).toFixed(3)})`;
+    }
+
+    let time = 0;
+
+    function render() {
+      time += 0.018;
+
+      // Mouse velocity & position smoothing
+      mouse.vx = mouse.targetX - mouse.x;
+      mouse.vy = mouse.targetY - mouse.y;
+      mouse.speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+      mouse.x += mouse.vx * 0.085;
+      mouse.y += mouse.vy * 0.085;
+
+      // Smooth scroll parallax
+      scrollY += (targetScrollY - scrollY) * 0.08;
+
+      // Update spotlight CSS variables
+      if (spotlight) {
+        spotlight.style.setProperty('--mouse-screen-x', `${mouse.x}px`);
+        spotlight.style.setProperty('--mouse-screen-y', `${mouse.y}px`);
+      }
+
+      ctx!.clearRect(0, 0, width, height);
+
+      // 3D Camera with interactive mouse tilt
+      const mouseNormX = (mouse.x / width - 0.5) * 2;
+      const mouseNormY = (mouse.y / height - 0.5) * 2;
+
+      const fov = 500;
+      const cameraPitch = 0.54 + mouseNormY * 0.15 + (scrollY * 0.0003);
+      const cameraYaw = mouseNormX * 0.10;
+      const cameraY = -120 + mouseNormY * 25;
+
+      const cosP = Math.cos(cameraPitch);
+      const sinP = Math.sin(cameraPitch);
+      const cosY = Math.cos(cameraYaw);
+      const sinY = Math.sin(cameraYaw);
+
+      // Render 3D Grid Points
+      const renderedPoints: {
+        sx: number;
+        sy: number;
+        size: number;
+        alpha: number;
+        color: string;
+        highlight: number;
+        z: number;
+      }[] = [];
+
+      for (let i = 0; i < points.length; i++) {
+        const pt = points[i];
+
+        // Wave elevation formula
+        const wave1 = Math.sin(pt.wavePhase + time * 1.4) * 28;
+        const wave2 = Math.cos(pt.x0 * 0.005 + time * 1.0) * 18;
+        const wave3 = Math.sin((pt.x0 + pt.z0) * 0.004 - time * 1.8) * 14;
+        const targetElevation = wave1 + wave2 + wave3;
+
+        // Interactive mouse force field & wave disturbance
+        const dx = pt.x0 - (mouse.x - width * 0.5) * 1.4;
+        const dz = pt.z0 - (mouse.y - height * 0.3) * 1.2;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const radius = mouse.radius * (1 + Math.min(mouse.speed * 0.02, 0.9));
+
+        let highlight = 0;
+        if (dist < radius) {
+          const force = (1 - dist / radius);
+          const impulse = Math.sin(dist * 0.08 - time * 7) * 55 * force + (mouse.speed * 0.35 * force);
+          pt.vy += impulse * 0.09;
+          highlight = force;
+        }
+
+        // Spring dampening physics
+        pt.vy += (targetElevation - pt.currentY) * 0.08;
+        pt.vy *= 0.85;
+        pt.currentY += pt.vy;
+
+        const y = pt.y0 + pt.currentY;
+
+        // 3D Rotations (Yaw then Pitch)
+        let rx = pt.x0 * cosY - pt.z0 * sinY;
+        let rz_temp = pt.x0 * sinY + pt.z0 * cosY;
+
+        let relY = y - cameraY;
+        let ry = relY * cosP - rz_temp * sinP;
+        let rz = relY * sinP + rz_temp * cosP + 520;
+
+        if (rz <= 20) {
+          renderedPoints.push(null as any);
+          continue;
+        }
+
+        const scale = fov / rz;
+        const sx = width * 0.5 + rx * scale;
+        const sy = height * 0.42 + ry * scale;
+
+        // Screen bounds check
+        if (sx < -80 || sx > width + 80 || sy < -80 || sy > height + 80) {
+          renderedPoints.push(null as any);
+          continue;
+        }
+
+        // Depth alpha calculation (Higher visibility)
+        const depthAlpha = Math.max(0.20, Math.min(0.96, (rz - 180) / 620)) * (1 + highlight * 0.6);
+        const colorShift = (pt.colorT + (y + 50) / 120 + highlight * 0.35) % 1;
+        const color = getPointColor(colorShift, depthAlpha, highlight * 0.7);
+
+        renderedPoints.push({
+          sx,
+          sy,
+          size: Math.max(1.1, pt.size * scale * (1 + highlight * 0.9)),
+          alpha: depthAlpha,
+          color,
+          highlight,
+          z: rz
+        });
+      }
+
+      // Draw LiDAR Wireframe Connections
+      ctx!.lineWidth = 0.85;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const idx = r * cols + c;
+          const curr = renderedPoints[idx];
+          if (!curr) continue;
+
+          // Connect Horizontal
+          if (c < cols - 1) {
+            const right = renderedPoints[idx + 1];
+            if (right) {
+              const lineAlpha = (curr.alpha + right.alpha) * 0.16 + (curr.highlight + right.highlight) * 0.45;
+              if (lineAlpha > 0.03) {
+                ctx!.strokeStyle = curr.highlight > 0.15 
+                  ? `rgba(187, 154, 247, ${Math.min(1, lineAlpha).toFixed(3)})`
+                  : `rgba(122, 162, 247, ${Math.min(1, lineAlpha).toFixed(3)})`;
+                ctx!.beginPath();
+                ctx!.moveTo(curr.sx, curr.sy);
+                ctx!.lineTo(right.sx, right.sy);
+                ctx!.stroke();
+              }
+            }
+          }
+
+          // Connect Vertical
+          if (r < rows - 1) {
+            const bottom = renderedPoints[idx + cols];
+            if (bottom) {
+              const lineAlpha = (curr.alpha + bottom.alpha) * 0.14 + (curr.highlight + bottom.highlight) * 0.40;
+              if (lineAlpha > 0.03) {
+                ctx!.strokeStyle = curr.highlight > 0.15
+                  ? `rgba(115, 218, 202, ${Math.min(1, lineAlpha).toFixed(3)})`
+                  : `rgba(187, 154, 247, ${Math.min(1, lineAlpha).toFixed(3)})`;
+                ctx!.beginPath();
+                ctx!.moveTo(curr.sx, curr.sy);
+                ctx!.lineTo(bottom.sx, bottom.sy);
+                ctx!.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      // Draw Point Particles with Dynamic Glowing Halo
+      for (let i = 0; i < renderedPoints.length; i++) {
+        const p = renderedPoints[i];
+        if (!p) continue;
+
+        ctx!.fillStyle = p.color;
+        ctx!.beginPath();
+        ctx!.arc(p.sx, p.sy, p.size, 0, Math.PI * 2);
+        ctx!.fill();
+
+        // Extra Glowing Core & Halo
+        if (p.highlight > 0.1 || (p.size > 2.0 && p.alpha > 0.45)) {
+          ctx!.fillStyle = p.color.replace(/[\d\.]+\)$/, '0.35)');
+          ctx!.beginPath();
+          ctx!.arc(p.sx, p.sy, p.size * (2.2 + p.highlight * 1.8), 0, Math.PI * 2);
+          ctx!.fill();
+        }
+      }
+
+      // Render Floating 3D Sparks / SIFT Keypoints
+      for (let i = 0; i < floatingSparks.length; i++) {
+        const sp = floatingSparks[i];
+        sp.x += sp.vx;
+        sp.y += sp.vy;
+        sp.z += sp.vz;
+
+        // Subtle attraction to mouse in 3D
+        const mouseWorldX = (mouse.x - width * 0.5) * 1.2;
+        const mouseWorldY = (mouse.y - height * 0.5) * 1.2;
+        const dmx = mouseWorldX - sp.x;
+        const dmy = mouseWorldY - sp.y;
+        sp.vx += dmx * 0.0001;
+        sp.vy += dmy * 0.0001;
+        sp.vx *= 0.98;
+        sp.vy *= 0.98;
+
+        // Wrap around boundaries
+        if (sp.x < -width * 0.85) sp.x = width * 0.85;
+        if (sp.x > width * 0.85) sp.x = -width * 0.85;
+        if (sp.y < -height * 0.7) sp.y = height * 0.7;
+        if (sp.y > height * 0.7) sp.y = -height * 0.7;
+        if (sp.z < 80) sp.z = 750;
+        if (sp.z > 750) sp.z = 80;
+
+        const scale = fov / sp.z;
+        const sx = width * 0.5 + sp.x * scale;
+        const sy = height * 0.5 + sp.y * scale;
+
+        const sparkColor = getPointColor((sp.baseColorT + time * 0.06) % 1, sp.alpha);
+        ctx!.fillStyle = sparkColor;
+        ctx!.beginPath();
+        ctx!.arc(sx, sy, sp.size * scale * 1.8, 0, Math.PI * 2);
+        ctx!.fill();
+
+        // Halo for sparks
+        ctx!.fillStyle = sparkColor.replace(/[\d\.]+\)$/, '0.25)');
+        ctx!.beginPath();
+        ctx!.arc(sx, sy, sp.size * scale * 3.5, 0, Math.PI * 2);
+        ctx!.fill();
+      }
+
+      animId = requestAnimationFrame(render);
+    }
+
+    // Global Event Handlers
+    function handleMouseMove(e: MouseEvent) {
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
+      mouse.isHovered = true;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      if (e.touches.length > 0) {
+        mouse.targetX = e.touches[0].clientX;
+        mouse.targetY = e.touches[0].clientY;
+        mouse.isHovered = true;
+      }
+    }
+
+    function handleScroll() {
+      targetScrollY = window.scrollY || 0;
+    }
+
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    function handleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setupScene();
+      }, 100);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    setupScene();
+    render();
+
+    // Clean up on Astro view transitions
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    }, { once: true });
+  }
+
+  // Self-executing on all lifecycle hooks
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGlobalPointCloud);
+  } else {
+    initGlobalPointCloud();
+  }
+  document.addEventListener('astro:page-load', initGlobalPointCloud);
+</script>

@@ -1,0 +1,590 @@
+---
+// VisionHUDBackground.astro - Real-time Computer Vision & AI HUD Background
+---
+
+<div class="vision-hud-container" id="vision-hud-wrapper" aria-hidden="true">
+  <!-- Subtle Ambient Glow -->
+  <div class="vision-ambient-glow"></div>
+  
+  <!-- High-Precision Canvas -->
+  <canvas id="vision-hud-canvas" class="vision-canvas"></canvas>
+
+  <!-- Corner Watermark Telemetry -->
+  <div class="hud-telemetry-panel hud-telemetry-tl">
+    <span class="hud-mono-label">MODEL: YOLOv11-SAM2 // INFERENCE: 4.2ms</span>
+  </div>
+  <div class="hud-telemetry-panel hud-telemetry-tr">
+    <span class="hud-mono-label">CV_ENGINE: RUNNING // CUDA_CORES: ACTIVE</span>
+  </div>
+</div>
+
+<style>
+  .vision-hud-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    background-color: var(--bg, #1a1b26);
+  }
+
+  .vision-ambient-glow {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle 650px at 20% 25%, rgba(122, 162, 247, 0.12) 0%, transparent 65%),
+      radial-gradient(circle 700px at 80% 40%, rgba(187, 154, 247, 0.10) 0%, transparent 65%),
+      radial-gradient(circle 600px at 50% 80%, rgba(115, 218, 202, 0.08) 0%, transparent 70%);
+    filter: blur(60px);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .vision-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  .hud-telemetry-panel {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: rgba(26, 27, 38, 0.7);
+    border: 1px solid rgba(122, 162, 247, 0.2);
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .hud-telemetry-tl {
+    top: 76px;
+    left: 20px;
+  }
+
+  .hud-telemetry-tr {
+    top: 76px;
+    right: 20px;
+  }
+
+  .hud-mono-label {
+    font-family: var(--mono, "JetBrains Mono", monospace);
+    font-size: 0.65rem;
+    color: var(--ink-soft, #c0caf5);
+    letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 900px) {
+    .hud-telemetry-panel {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  function initVisionHUD() {
+    const canvas = document.getElementById('vision-hud-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    // Mouse Tracking with smooth spring lag
+    const mouse = {
+      x: window.innerWidth * 0.5,
+      y: window.innerHeight * 0.4,
+      targetX: window.innerWidth * 0.5,
+      targetY: window.innerHeight * 0.4,
+      boxW: 130,
+      boxH: 80,
+      targetBoxW: 130,
+      targetBoxH: 80,
+      speed: 0,
+      isMoving: false,
+      idleTimer: 0,
+      confidence: 0.985
+    };
+
+    // Optical Flow Trail history
+    const trail: { x: number; y: number; alpha: number }[] = [];
+    const MAX_TRAIL = 18;
+
+    // Click Radar Pulses
+    const pulses: { x: number; y: number; r: number; maxR: number; alpha: number; color: string }[] = [];
+
+    // SIFT / ORB Keypoints
+    interface Keypoint {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      baseX: number;
+      baseY: number;
+      radius: number;
+      angle: number; // SIFT orientation angle
+      angleSpeed: number;
+      octave: number; // Scale-space octave
+      matched: boolean;
+      matchAlpha: number;
+      color: string;
+      id: number;
+    }
+
+    let keypoints: Keypoint[] = [];
+
+    // Colors matching theme
+    const COLOR_CYAN = '#7aa2f7';
+    const COLOR_PURPLE = '#bb9af7';
+    const COLOR_GREEN = '#73daca';
+    const COLOR_PINK = '#f7768e';
+    const COLOR_YELLOW = '#e0af68';
+
+    function setupScene() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.scale(dpr, dpr);
+
+      // Adaptive Keypoint Density
+      const count = width < 640 ? 45 : width < 1100 ? 80 : 120;
+      keypoints = [];
+
+      const colors = [COLOR_CYAN, COLOR_PURPLE, COLOR_GREEN, COLOR_YELLOW];
+
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        keypoints.push({
+          id: i,
+          x,
+          y,
+          baseX: x,
+          baseY: y,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          radius: 2.0 + Math.random() * 2.5,
+          angle: Math.random() * Math.PI * 2,
+          angleSpeed: (Math.random() - 0.5) * 0.02,
+          octave: Math.floor(Math.random() * 3) + 1,
+          matched: false,
+          matchAlpha: 0,
+          color: colors[i % colors.length]
+        });
+      }
+    }
+
+    let time = 0;
+    let scanLineY = 0;
+
+    function render() {
+      time += 0.016;
+
+      // Mouse position smoothing (Spring Tracker physics)
+      const dx = mouse.targetX - mouse.x;
+      const dy = mouse.targetY - mouse.y;
+      mouse.speed = Math.sqrt(dx * dx + dy * dy);
+      mouse.x += dx * 0.12;
+      mouse.y += dy * 0.12;
+
+      // Dynamic Bounding Box size reacting to speed
+      mouse.targetBoxW = 125 + Math.min(mouse.speed * 1.5, 60);
+      mouse.targetBoxH = 75 + Math.min(mouse.speed * 1.0, 40);
+      mouse.boxW += (mouse.targetBoxW - mouse.boxW) * 0.15;
+      mouse.boxH += (mouse.targetBoxH - mouse.boxH) * 0.15;
+
+      // Optical Flow Trail
+      trail.unshift({ x: mouse.x, y: mouse.y, alpha: 1.0 });
+      if (trail.length > MAX_TRAIL) trail.pop();
+
+      // Laser Scan Line
+      scanLineY = (scanLineY + 2.2) % (height + 150);
+
+      ctx!.clearRect(0, 0, width, height);
+
+      // 1. Draw Discrete Background Grid Pattern
+      drawMatrixGrid();
+
+      // 2. Draw Laser Sweep Line
+      drawLaserSweep(scanLineY - 75);
+
+      // 3. Update & Draw SIFT / ORB Keypoints and Feature Matches
+      updateAndDrawKeypoints();
+
+      // 4. Draw Optical Flow Motion Vectors
+      drawOpticalFlow();
+
+      // 5. Draw Click Radar Pulses
+      drawPulses();
+
+      // 6. Draw AI Bounding Box & YOLO Reticle around Mouse
+      drawAIBoundingBox();
+
+      animId = requestAnimationFrame(render);
+    }
+
+    // --- Sub-renderers ---
+
+    function drawMatrixGrid() {
+      ctx!.save();
+      const gridSize = 48;
+      ctx!.strokeStyle = 'rgba(122, 162, 247, 0.04)';
+      ctx!.lineWidth = 1;
+
+      // Subtle coordinate tick marks
+      ctx!.fillStyle = 'rgba(122, 162, 247, 0.12)';
+      for (let x = 0; x < width; x += gridSize * 3) {
+        for (let y = 0; y < height; y += gridSize * 3) {
+          ctx!.fillRect(x - 1, y - 1, 2, 2);
+        }
+      }
+      ctx!.restore();
+    }
+
+    function drawLaserSweep(y: number) {
+      if (y < -20 || y > height + 20) return;
+      ctx!.save();
+      const grad = ctx!.createLinearGradient(0, y - 25, 0, y + 25);
+      grad.addColorStop(0, 'rgba(115, 218, 202, 0)');
+      grad.addColorStop(0.5, 'rgba(115, 218, 202, 0.25)');
+      grad.addColorStop(1, 'rgba(115, 218, 202, 0)');
+
+      ctx!.fillStyle = grad;
+      ctx!.fillRect(0, y - 25, width, 50);
+
+      ctx!.strokeStyle = 'rgba(115, 218, 202, 0.6)';
+      ctx!.lineWidth = 1.2;
+      ctx!.beginPath();
+      ctx!.moveTo(0, y);
+      ctx!.lineTo(width, y);
+      ctx!.stroke();
+
+      // Sweep Label
+      ctx!.font = '9px "JetBrains Mono", monospace';
+      ctx!.fillStyle = 'rgba(115, 218, 202, 0.6)';
+      ctx!.fillText(`LASER_SWEEP // SCAN_LINE: ${Math.round(y)}px`, 20, Math.max(20, y - 6));
+      ctx!.restore();
+    }
+
+    function updateAndDrawKeypoints() {
+      const matchRadius = 220;
+      let matchedCount = 0;
+
+      for (let i = 0; i < keypoints.length; i++) {
+        const kp = keypoints[i];
+
+        // Drift
+        kp.x += kp.vx;
+        kp.y += kp.vy;
+        kp.angle += kp.angleSpeed;
+
+        // Bounce
+        if (kp.x < 10 || kp.x > width - 10) kp.vx *= -1;
+        if (kp.y < 10 || kp.y > height - 10) kp.vy *= -1;
+
+        // Mouse distance
+        const dx = kp.x - mouse.x;
+        const dy = kp.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        kp.matched = dist < matchRadius;
+        if (kp.matched) {
+          kp.matchAlpha = Math.min(1, kp.matchAlpha + 0.15);
+          matchedCount++;
+        } else {
+          kp.matchAlpha = Math.max(0, kp.matchAlpha - 0.05);
+        }
+
+        // Draw Feature Matching Line to Cursor
+        if (kp.matchAlpha > 0.05) {
+          ctx!.save();
+          ctx!.strokeStyle = `rgba(122, 162, 247, ${(kp.matchAlpha * (1 - dist / matchRadius) * 0.6).toFixed(3)})`;
+          ctx!.lineWidth = 0.9;
+          ctx!.setLineDash([3, 3]);
+          ctx!.beginPath();
+          ctx!.moveTo(kp.x, kp.y);
+          ctx!.lineTo(mouse.x, mouse.y);
+          ctx!.stroke();
+
+          // Distance label on top 3 closest
+          if (dist < 120) {
+            const midX = (kp.x + mouse.x) * 0.5;
+            const midY = (kp.y + mouse.y) * 0.5;
+            ctx!.font = '8px "JetBrains Mono", monospace';
+            ctx!.fillStyle = 'rgba(187, 154, 247, 0.7)';
+            ctx!.fillText(`d:${Math.round(dist)}`, midX + 4, midY - 4);
+          }
+          ctx!.restore();
+        }
+
+        // Draw SIFT Feature Keypoint (Circle with Orientation Vector needle)
+        ctx!.save();
+        const baseAlpha = kp.matched ? 0.95 : 0.35;
+        ctx!.strokeStyle = kp.matched ? COLOR_CYAN : kp.color;
+        ctx!.fillStyle = kp.matched ? 'rgba(122, 162, 247, 0.25)' : 'rgba(255, 255, 255, 0.05)';
+        ctx!.lineWidth = kp.matched ? 1.4 : 0.8;
+
+        // Keypoint Circle
+        ctx!.beginPath();
+        ctx!.arc(kp.x, kp.y, kp.radius * (kp.matched ? 1.5 : 1.0), 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.stroke();
+
+        // SIFT Gradient Orientation Needle
+        const needleLen = (kp.radius + 5) * (kp.matched ? 1.6 : 1.0);
+        const nx = kp.x + Math.cos(kp.angle) * needleLen;
+        const ny = kp.y + Math.sin(kp.angle) * needleLen;
+
+        ctx!.beginPath();
+        ctx!.moveTo(kp.x, kp.y);
+        ctx!.lineTo(nx, ny);
+        ctx!.stroke();
+
+        // Small keypoint ID label if matched
+        if (kp.matched && dist < 140) {
+          ctx!.font = '8px "JetBrains Mono", monospace';
+          ctx!.fillStyle = 'rgba(115, 218, 202, 0.75)';
+          ctx!.fillText(`KP#${kp.id} [${kp.octave}σ]`, kp.x + 8, kp.y + 3);
+        }
+
+        ctx!.restore();
+      }
+    }
+
+    function drawOpticalFlow() {
+      if (trail.length < 2) return;
+      ctx!.save();
+      ctx!.lineWidth = 1.2;
+
+      for (let i = 0; i < trail.length - 1; i++) {
+        const p1 = trail[i];
+        const p2 = trail[i + 1];
+        const alpha = (1 - i / trail.length) * 0.45;
+
+        ctx!.strokeStyle = `rgba(187, 154, 247, ${alpha.toFixed(3)})`;
+        ctx!.beginPath();
+        ctx!.moveTo(p1.x, p1.y);
+        ctx!.lineTo(p2.x, p2.y);
+        ctx!.stroke();
+      }
+      ctx!.restore();
+    }
+
+    function drawPulses() {
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.r += 6;
+        p.alpha *= 0.94;
+
+        ctx!.save();
+        ctx!.strokeStyle = p.color.replace(/[\d\.]+\)$/, `${p.alpha.toFixed(3)})`);
+        ctx!.lineWidth = 1.5;
+        ctx!.setLineDash([4, 4]);
+
+        ctx!.beginPath();
+        ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx!.stroke();
+
+        ctx!.font = '9px "JetBrains Mono", monospace';
+        ctx!.fillStyle = p.color.replace(/[\d\.]+\)$/, `${(p.alpha * 0.8).toFixed(3)})`);
+        ctx!.fillText(`RADAR_PULSE // r:${Math.round(p.r)}px`, p.x + p.r + 4, p.y);
+        ctx!.restore();
+
+        if (p.alpha < 0.02 || p.r > p.maxR) {
+          pulses.splice(i, 1);
+        }
+      }
+    }
+
+    function drawAIBoundingBox() {
+      const halfW = mouse.boxW * 0.5;
+      const halfH = mouse.boxH * 0.5;
+      const left = mouse.x - halfW;
+      const top = mouse.y - halfH;
+      const right = mouse.x + halfW;
+      const bottom = mouse.y + halfH;
+      const cornerLen = 14;
+
+      ctx!.save();
+
+      // 1. Semi-transparent segmentation fill
+      ctx!.fillStyle = 'rgba(122, 162, 247, 0.05)';
+      ctx!.fillRect(left, top, mouse.boxW, mouse.boxH);
+
+      // 2. Dashed thin boundary
+      ctx!.strokeStyle = 'rgba(122, 162, 247, 0.35)';
+      ctx!.lineWidth = 1;
+      ctx!.setLineDash([3, 3]);
+      ctx!.strokeRect(left, top, mouse.boxW, mouse.boxH);
+      ctx!.setLineDash([]);
+
+      // 3. Crisp Neon Corner Brackets
+      ctx!.strokeStyle = COLOR_CYAN;
+      ctx!.lineWidth = 2;
+
+      // Top-Left
+      ctx!.beginPath();
+      ctx!.moveTo(left, top + cornerLen);
+      ctx!.lineTo(left, top);
+      ctx!.lineTo(left + cornerLen, top);
+      ctx!.stroke();
+
+      // Top-Right
+      ctx!.beginPath();
+      ctx!.moveTo(right - cornerLen, top);
+      ctx!.lineTo(right, top);
+      ctx!.lineTo(right, top + cornerLen);
+      ctx!.stroke();
+
+      // Bottom-Left
+      ctx!.beginPath();
+      ctx!.moveTo(left, bottom - cornerLen);
+      ctx!.lineTo(left, bottom);
+      ctx!.lineTo(left + cornerLen, bottom);
+      ctx!.stroke();
+
+      // Bottom-Right
+      ctx!.beginPath();
+      ctx!.moveTo(right - cornerLen, bottom);
+      ctx!.lineTo(right, bottom);
+      ctx!.lineTo(right, bottom - cornerLen);
+      ctx!.stroke();
+
+      // 4. Center Crosshair Reticle (+)
+      ctx!.strokeStyle = 'rgba(115, 218, 202, 0.7)';
+      ctx!.lineWidth = 1.2;
+      const crossSize = 6;
+      ctx!.beginPath();
+      ctx!.moveTo(mouse.x - crossSize, mouse.y);
+      ctx!.lineTo(mouse.x + crossSize, mouse.y);
+      ctx!.moveTo(mouse.x, mouse.y - crossSize);
+      ctx!.lineTo(mouse.x, mouse.y + crossSize);
+      ctx!.stroke();
+
+      // 5. Convolutional Kernel Matrix Symbol 3x3
+      const kernelX = right - 18;
+      const kernelY = top + 12;
+      ctx!.fillStyle = 'rgba(187, 154, 247, 0.6)';
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          ctx!.fillRect(kernelX + c * 4, kernelY + r * 4, 2, 2);
+        }
+      }
+
+      // 6. Classification Header Tag Badge
+      const tagText = `[TARGET: CV_ENGINEER 99.8%]`;
+      ctx!.font = '9px "JetBrains Mono", monospace';
+      const textWidth = ctx!.measureText(tagText).width;
+
+      ctx!.fillStyle = 'rgba(26, 27, 38, 0.85)';
+      ctx!.fillRect(left, top - 18, textWidth + 8, 16);
+      ctx!.strokeStyle = COLOR_CYAN;
+      ctx!.lineWidth = 1;
+      ctx!.strokeRect(left, top - 18, textWidth + 8, 16);
+
+      ctx!.fillStyle = COLOR_CYAN;
+      ctx!.fillText(tagText, left + 4, top - 6);
+
+      // 7. Footer Coordinates & Tensor Stats
+      const statsText = `X:${Math.round(mouse.x)} Y:${Math.round(mouse.y)} // TENSOR:[1,3,512,512]`;
+      ctx!.font = '8px "JetBrains Mono", monospace';
+      ctx!.fillStyle = 'rgba(187, 154, 247, 0.8)';
+      ctx!.fillText(statsText, left, bottom + 13);
+
+      ctx!.restore();
+    }
+
+    // Global Event Handlers
+    function handleMouseMove(e: MouseEvent) {
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
+      mouse.isMoving = true;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      if (e.touches.length > 0) {
+        mouse.targetX = e.touches[0].clientX;
+        mouse.targetY = e.touches[0].clientY;
+        mouse.isMoving = true;
+      }
+    }
+
+    function handleClick(e: MouseEvent | TouchEvent) {
+      const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+      pulses.push({
+        x: clientX,
+        y: clientY,
+        r: 10,
+        maxR: 320,
+        alpha: 0.8,
+        color: 'rgba(115, 218, 202, 1.0)'
+      });
+
+      // Scatter nearby keypoints
+      for (let i = 0; i < keypoints.length; i++) {
+        const kp = keypoints[i];
+        const dx = kp.x - clientX;
+        const dy = kp.y - clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 200 && dist > 1) {
+          const force = (1 - dist / 200) * 8;
+          kp.vx += (dx / dist) * force;
+          kp.vy += (dy / dist) * force;
+        }
+      }
+    }
+
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    function handleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setupScene();
+      }, 100);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('mousedown', handleClick as any, { passive: true });
+    window.addEventListener('touchstart', handleClick as any, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    setupScene();
+    render();
+
+    // Clean up on Astro view transitions
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mousedown', handleClick as any);
+      window.removeEventListener('touchstart', handleClick as any);
+      window.removeEventListener('resize', handleResize);
+    }, { once: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVisionHUD);
+  } else {
+    initVisionHUD();
+  }
+  document.addEventListener('astro:page-load', initVisionHUD);
+</script>

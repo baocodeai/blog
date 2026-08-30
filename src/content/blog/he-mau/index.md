@@ -5,7 +5,7 @@ date: 2026-08-29
 draft: false
 featured: false
 category: "Image Processing"
-domain: "Computer Vision"
+domain: "Classical"
 stage: "Deep Dives"
 specs:
   - "OpenCV & NumPy"

@@ -1,0 +1,567 @@
+---
+// CosmosBackground.astro - Seamless Photorealistic Solar System
+---
+
+<div class="cosmos-background-container" id="cosmos-bg-wrapper" aria-hidden="true">
+  <!-- Deep Space Cosmic Atmosphere -->
+  <div class="nebula-cloud nebula-primary"></div>
+  <div class="nebula-cloud nebula-secondary"></div>
+
+  <!-- Fullscreen Interactive Canvas -->
+  <canvas id="cosmos-canvas" class="cosmos-canvas"></canvas>
+</div>
+
+<style>
+  .cosmos-background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    background-color: #05060f;
+  }
+
+  .nebula-cloud {
+    position: absolute;
+    inset: -30%;
+    filter: blur(110px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .nebula-primary {
+    background: radial-gradient(circle 800px at 15% 20%, rgba(59, 130, 246, 0.20) 0%, rgba(30, 58, 138, 0.08) 45%, transparent 70%);
+    animation: nebula-drift-1 26s ease-in-out infinite alternate;
+  }
+
+  .nebula-secondary {
+    background: radial-gradient(circle 850px at 85% 40%, rgba(139, 92, 246, 0.18) 0%, rgba(217, 119, 6, 0.08) 50%, transparent 70%);
+    animation: nebula-drift-2 30s ease-in-out infinite alternate;
+  }
+
+  @keyframes nebula-drift-1 {
+    0% { transform: scale(1) translate(0, 0); opacity: 0.5; }
+    50% { transform: scale(1.08) translate(-2%, 2%); opacity: 0.7; }
+    100% { transform: scale(1.02) translate(2%, -2%); opacity: 0.55; }
+  }
+
+  @keyframes nebula-drift-2 {
+    0% { transform: scale(1.05) translate(0, 0); opacity: 0.45; }
+    50% { transform: scale(0.96) translate(2%, -2%); opacity: 0.65; }
+    100% { transform: scale(1.06) translate(-2%, 2%); opacity: 0.5; }
+  }
+
+  .cosmos-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  function initCosmosEngine() {
+    const canvas = document.getElementById('cosmos-canvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    // Processed transparent planet canvases
+    const transparentPlanets: Record<string, HTMLCanvasElement> = {};
+    const planetSources = {
+      saturn: '/assets/planets/saturn.jpg',
+      earth: '/assets/planets/earth.jpg',
+      jupiter: '/assets/planets/jupiter.jpg',
+      mars: '/assets/planets/mars.jpg'
+    };
+
+    // Helper: Remove black background & softly feather circular edges to eliminate ANY square border
+    function processTransparentPlanet(img: HTMLImageElement): HTMLCanvasElement {
+      const c = document.createElement('canvas');
+      const w = img.naturalWidth || img.width || 512;
+      const h = img.naturalHeight || img.height || 512;
+      c.width = w;
+      c.height = h;
+      const cctx = c.getContext('2d')!;
+      cctx.drawImage(img, 0, 0, w, h);
+
+      const imgData = cctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const maxDist = Math.min(cx, cy);
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+
+          // Perceived Luminance
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+          // Radial distance from center to softly fade square corners
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const edgeFeather = Math.max(0, Math.min(1, (maxDist - dist) / (maxDist * 0.18)));
+
+          // Luma Key: smoothly fade dark background pixels to transparent
+          let lumaAlpha = 1.0;
+          if (lum < 32) {
+            lumaAlpha = Math.max(0, (lum - 4) / 28);
+          }
+
+          data[idx + 3] = Math.round(data[idx + 3] * lumaAlpha * edgeFeather);
+        }
+      }
+
+      cctx.putImageData(imgData, 0, 0);
+      return c;
+    }
+
+    // Preload & process images
+    for (const [key, src] of Object.entries(planetSources)) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+      img.onload = () => {
+        transparentPlanets[key] = processTransparentPlanet(img);
+      };
+    }
+
+    // Mouse Tracking with smooth parallax
+    const mouse = {
+      x: window.innerWidth * 0.5,
+      y: window.innerHeight * 0.5,
+      targetX: window.innerWidth * 0.5,
+      targetY: window.innerHeight * 0.5,
+      normX: 0,
+      normY: 0,
+      speed: 0
+    };
+
+    // Stardust trail
+    const stardust: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      alpha: number;
+      color: string;
+      life: number;
+      maxLife: number;
+    }[] = [];
+
+    // Stars
+    interface Star {
+      x: number;
+      y: number;
+      z: number;
+      size: number;
+      baseAlpha: number;
+      twinkleSpeed: number;
+      phase: number;
+      color: string;
+      isCrossStar: boolean;
+    }
+
+    let stars: Star[] = [];
+
+    // Shooting Stars
+    interface Meteor {
+      x: number;
+      y: number;
+      len: number;
+      speed: number;
+      angle: number;
+      alpha: number;
+      color: string;
+      thickness: number;
+    }
+
+    let meteors: Meteor[] = [];
+    let nextMeteorTimer = 3.0;
+
+    // Setup Scene
+    function setupScene() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas!.width = width * dpr;
+      canvas!.height = height * dpr;
+      ctx!.scale(dpr, dpr);
+
+      const starCount = width < 768 ? 160 : 320;
+      stars = [];
+      const starColors = [
+        '#ffffff',
+        '#f8fafc',
+        '#bfdbfe',
+        '#93c5fd',
+        '#fef08a',
+        '#fed7aa'
+      ];
+
+      for (let i = 0; i < starCount; i++) {
+        const z = 0.15 + Math.random() * 0.85;
+        stars.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          z,
+          size: (0.45 + Math.random() * 1.4) * (z * 1.2),
+          baseAlpha: 0.25 + Math.random() * 0.75,
+          twinkleSpeed: 1.0 + Math.random() * 2.8,
+          phase: Math.random() * Math.PI * 2,
+          color: starColors[Math.floor(Math.random() * starColors.length)],
+          isCrossStar: Math.random() < 0.08
+        });
+      }
+    }
+
+    let time = 0;
+
+    function render() {
+      time += 0.014;
+
+      // Mouse Smooth Interpolation
+      const dx = mouse.targetX - mouse.x;
+      const dy = mouse.targetY - mouse.y;
+      mouse.speed = Math.sqrt(dx * dx + dy * dy);
+      mouse.x += dx * 0.065;
+      mouse.y += dy * 0.065;
+
+      mouse.normX = (mouse.x / width - 0.5) * 2;
+      mouse.normY = (mouse.y / height - 0.5) * 2;
+
+      ctx!.clearRect(0, 0, width, height);
+
+      // 1. Draw Starfield
+      drawStarfield();
+
+      // 2. Draw 100% Seamless Transparent Planets
+      drawSeamlessPlanets();
+
+      // 3. Update & Draw Meteors
+      updateAndDrawMeteors();
+
+      // 4. Update & Draw Stardust
+      updateAndDrawStardust();
+
+      animId = requestAnimationFrame(render);
+    }
+
+    function drawStarfield() {
+      const pMaxX = mouse.normX * 22;
+      const pMaxY = mouse.normY * 18;
+
+      for (let i = 0; i < stars.length; i++) {
+        const star = stars[i];
+        const sx = star.x + pMaxX * star.z;
+        const sy = star.y + pMaxY * star.z;
+
+        const twinkle = Math.sin(time * star.twinkleSpeed + star.phase);
+        const alpha = Math.max(0.1, Math.min(1.0, star.baseAlpha + twinkle * 0.35));
+
+        ctx!.save();
+        ctx!.fillStyle = star.color;
+        ctx!.globalAlpha = alpha;
+
+        ctx!.beginPath();
+        ctx!.arc(sx, sy, star.size, 0, Math.PI * 2);
+        ctx!.fill();
+
+        if (star.isCrossStar && alpha > 0.6) {
+          const flareLen = star.size * (3.5 + twinkle * 1.5);
+          ctx!.strokeStyle = star.color;
+          ctx!.lineWidth = 0.6;
+          ctx!.beginPath();
+          ctx!.moveTo(sx - flareLen, sy);
+          ctx!.lineTo(sx + flareLen, sy);
+          ctx!.moveTo(sx, sy - flareLen);
+          ctx!.lineTo(sx, sy + flareLen);
+          ctx!.stroke();
+
+          ctx!.fillStyle = star.color;
+          ctx!.globalAlpha = alpha * 0.2;
+          ctx!.beginPath();
+          ctx!.arc(sx, sy, star.size * 3.0, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        ctx!.restore();
+      }
+    }
+
+    function drawSeamlessPlanets() {
+      // 1. SATURN (Sao Thổ) - Top Right
+      if (transparentPlanets.saturn) {
+        const saturnX = (width < 768 ? width * 0.85 : width * 0.86) + mouse.normX * 14;
+        const saturnY = (height * 0.18) + mouse.normY * 12;
+        const saturnSize = width < 768 ? 140 : 210;
+
+        renderSeamlessPlanet(transparentPlanets.saturn, saturnX, saturnY, saturnSize, 'rgba(234, 179, 8, 0.3)');
+      }
+
+      // 2. EARTH (Trái Đất The Blue Marble) - Bottom Left
+      if (transparentPlanets.earth) {
+        const earthX = (width < 768 ? width * 0.15 : width * 0.12) + mouse.normX * 22;
+        const earthY = (height * 0.74) + mouse.normY * 18;
+        const earthSize = width < 768 ? 110 : 160;
+
+        renderSeamlessPlanet(transparentPlanets.earth, earthX, earthY, earthSize, 'rgba(96, 165, 250, 0.4)');
+
+        // Orbiting Realistic Moon
+        const moonAngle = time * 0.24 + 1.8;
+        const moonDist = (earthSize * 0.5) * 1.5;
+        const mx = earthX + Math.cos(moonAngle) * moonDist;
+        const my = earthY + Math.sin(moonAngle) * (moonDist * 0.45);
+        const moonR = earthSize * 0.07;
+
+        ctx!.save();
+        const moonGrad = ctx!.createRadialGradient(mx - moonR * 0.3, my - moonR * 0.3, 1, mx, my, moonR);
+        moonGrad.addColorStop(0, '#ffffff');
+        moonGrad.addColorStop(0.4, '#cbd5e1');
+        moonGrad.addColorStop(1, '#0f172a');
+        ctx!.fillStyle = moonGrad;
+        ctx!.beginPath();
+        ctx!.arc(mx, my, moonR, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+      }
+
+      // 3. JUPITER (Sao Mộc with Great Red Spot) - Mid-Left
+      if (transparentPlanets.jupiter) {
+        const jupX = (width < 768 ? width * 0.18 : width * 0.20) + mouse.normX * 10;
+        const jupY = (height * 0.22) + mouse.normY * 9;
+        const jupSize = width < 768 ? 85 : 125;
+
+        renderSeamlessPlanet(transparentPlanets.jupiter, jupX, jupY, jupSize, 'rgba(217, 119, 6, 0.25)');
+      }
+
+      // 4. MARS (Sao Hỏa) - Mid-Right
+      if (transparentPlanets.mars) {
+        const marsX = (width * 0.74) + mouse.normX * 16;
+        const marsY = (height * 0.84) + mouse.normY * 14;
+        const marsSize = width < 768 ? 65 : 95;
+
+        renderSeamlessPlanet(transparentPlanets.mars, marsX, marsY, marsSize, 'rgba(239, 68, 68, 0.3)');
+      }
+    }
+
+    function renderSeamlessPlanet(pCanvas: HTMLCanvasElement, cx: number, cy: number, size: number, glowColor: string) {
+      ctx!.save();
+
+      // 1. Atmospheric Glow behind planet
+      const glow = ctx!.createRadialGradient(cx, cy, size * 0.25, cx, cy, size * 0.75);
+      glow.addColorStop(0, glowColor);
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx!.fillStyle = glow;
+      ctx!.beginPath();
+      ctx!.arc(cx, cy, size * 0.75, 0, Math.PI * 2);
+      ctx!.fill();
+
+      // 2. Draw the transparent planet canvas directly
+      ctx!.drawImage(pCanvas, cx - size * 0.5, cy - size * 0.5, size, size);
+
+      ctx!.restore();
+    }
+
+    function spawnMeteor() {
+      const angle = (Math.PI / 4) + (Math.random() - 0.5) * 0.3;
+      const startX = Math.random() * width * 1.2 - width * 0.1;
+      const startY = -40;
+
+      const colors = ['#93c5fd', '#c4b5fd', '#fef08a', '#ffffff'];
+
+      meteors.push({
+        x: startX,
+        y: startY,
+        len: 140 + Math.random() * 180,
+        speed: 18 + Math.random() * 12,
+        angle,
+        alpha: 1.0,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        thickness: 1.5 + Math.random() * 1.2
+      });
+    }
+
+    function updateAndDrawMeteors() {
+      nextMeteorTimer -= 0.016;
+      if (nextMeteorTimer <= 0) {
+        spawnMeteor();
+        nextMeteorTimer = 4.0 + Math.random() * 4.5;
+      }
+
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        m.x += Math.cos(m.angle) * m.speed;
+        m.y += Math.sin(m.angle) * m.speed;
+        m.alpha *= 0.978;
+
+        const tailX = m.x - Math.cos(m.angle) * m.len;
+        const tailY = m.y - Math.sin(m.angle) * m.len;
+
+        ctx!.save();
+        const grad = ctx!.createLinearGradient(tailX, tailY, m.x, m.y);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        grad.addColorStop(0.7, m.color);
+        grad.addColorStop(1, '#ffffff');
+
+        ctx!.strokeStyle = grad;
+        ctx!.lineWidth = m.thickness;
+        ctx!.lineCap = 'round';
+        ctx!.globalAlpha = m.alpha;
+
+        ctx!.beginPath();
+        ctx!.moveTo(tailX, tailY);
+        ctx!.lineTo(m.x, m.y);
+        ctx!.stroke();
+
+        ctx!.fillStyle = '#ffffff';
+        ctx!.beginPath();
+        ctx!.arc(m.x, m.y, m.thickness * 1.5, 0, Math.PI * 2);
+        ctx!.fill();
+
+        ctx!.restore();
+
+        if (m.alpha < 0.02 || m.y > height + 100 || m.x > width + 100) {
+          meteors.splice(i, 1);
+        }
+      }
+    }
+
+    function updateAndDrawStardust() {
+      if (mouse.speed > 1.5) {
+        const colors = ['#93c5fd', '#c4b5fd', '#fef08a', '#ffffff', '#fed7aa'];
+        for (let k = 0; k < 2; k++) {
+          stardust.push({
+            x: mouse.x + (Math.random() - 0.5) * 15,
+            y: mouse.y + (Math.random() - 0.5) * 15,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5 - 0.4,
+            size: 1.0 + Math.random() * 2.0,
+            alpha: 0.9,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 0,
+            maxLife: 45 + Math.random() * 30
+          });
+        }
+      }
+
+      for (let i = stardust.length - 1; i >= 0; i--) {
+        const p = stardust[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life++;
+        p.alpha = Math.max(0, 1 - (p.life / p.maxLife));
+
+        ctx!.save();
+        ctx!.fillStyle = p.color;
+        ctx!.globalAlpha = p.alpha * 0.8;
+
+        ctx!.beginPath();
+        ctx!.arc(p.x, p.y, p.size * p.alpha, 0, Math.PI * 2);
+        ctx!.fill();
+
+        if (p.size > 1.8) {
+          ctx!.globalAlpha = p.alpha * 0.22;
+          ctx!.beginPath();
+          ctx!.arc(p.x, p.y, p.size * 2.8, 0, Math.PI * 2);
+          ctx!.fill();
+        }
+
+        ctx!.restore();
+
+        if (p.life >= p.maxLife) {
+          stardust.splice(i, 1);
+        }
+      }
+    }
+
+    // Global Event Handlers
+    function handleMouseMove(e: MouseEvent) {
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
+    }
+
+    function handleTouchMove(e: TouchEvent) {
+      if (e.touches.length > 0) {
+        mouse.targetX = e.touches[0].clientX;
+        mouse.targetY = e.touches[0].clientY;
+      }
+    }
+
+    function handleClick(e: MouseEvent | TouchEvent) {
+      const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+      const colors = ['#ffffff', '#93c5fd', '#c4b5fd', '#fef08a', '#fed7aa'];
+      for (let i = 0; i < 28; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2.0 + Math.random() * 5.5;
+        stardust.push({
+          x: clientX,
+          y: clientY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 1.5 + Math.random() * 2.5,
+          alpha: 1.0,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          life: 0,
+          maxLife: 50 + Math.random() * 40
+        });
+      }
+
+      spawnMeteor();
+    }
+
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    function handleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setupScene();
+      }, 100);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('mousedown', handleClick as any, { passive: true });
+    window.addEventListener('touchstart', handleClick as any, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    setupScene();
+    render();
+
+    // Clean up on Astro view transitions
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mousedown', handleClick as any);
+      window.removeEventListener('touchstart', handleClick as any);
+      window.removeEventListener('resize', handleResize);
+    }, { once: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCosmosEngine);
+  } else {
+    initCosmosEngine();
+  }
+  document.addEventListener('astro:page-load', initCosmosEngine);
+</script>
