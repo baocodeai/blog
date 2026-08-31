@@ -7,7 +7,11 @@ const posts = (await getCollection('blog'))
   .map((post) => ({
     ...post,
     slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, ''),
-    domain: post.data.domain || 'Computer Vision',
+    domains: Array.isArray(post.data.domain)
+      ? post.data.domain
+      : post.data.domain
+        ? [post.data.domain]
+        : ['Computer Vision'],
     stage: post.data.stage || 'Deep Dive',
     specs: post.data.specs || []
   }))
@@ -23,7 +27,7 @@ const gridPosts = posts.filter((p) => p.slug !== featuredPost?.slug);
 // Domain filters matching the 6 core CV domains
 const filterDomains = [
   { id: 'all', label: 'All' },
-  { id: 'Computer Vision', label: 'Classical CV' },
+  { id: 'Classical', label: 'Classical CV' },
   { id: 'Deep Learning', label: 'Deep Learning' },
   { id: 'Detection & Tracking', label: 'Detection & Tracking' },
   { id: '3D Vision', label: '3D Vision' },
@@ -102,7 +106,7 @@ const filterDomains = [
       <section
         class="featured-post-section"
         id="featured-post-container"
-        data-domain={featuredPost.domain}
+        data-domain={featuredPost.domains.join(',')}
         data-title={featuredPost.data.title.toLowerCase()}
         data-desc={featuredPost.data.description.toLowerCase()}
         data-tags={(featuredPost.data.tags || []).join(',').toLowerCase()}
@@ -125,7 +129,9 @@ const filterDomains = [
             <div class="featured-content-box">
               <div class="card-badges-row">
                 <span class="badge-featured">Featured</span>
-                <span class="badge-domain">{featuredPost.domain}</span>
+                {featuredPost.domains.map((dm: string) => (
+                  <span class="badge-domain">{dm}</span>
+                ))}
               </div>
 
               <h2 class="featured-title">{featuredPost.data.title}</h2>
@@ -160,7 +166,7 @@ const filterDomains = [
         {gridPosts.map((post) => (
           <article
             class="cv-post-card"
-            data-domain={post.domain}
+            data-domain={post.domains.join(',')}
             data-title={post.data.title.toLowerCase()}
             data-desc={post.data.description.toLowerCase()}
             data-tags={(post.data.tags || []).join(',').toLowerCase()}
@@ -180,8 +186,10 @@ const filterDomains = [
               </div>
 
               <div class="cv-card-body">
-                <div class="cv-card-top-tags">
-                  <span class="badge-domain">{post.domain}</span>
+                <div class="cv-card-top-tags" style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                  {post.domains.map((dm: string) => (
+                    <span class="badge-domain">{dm}</span>
+                  ))}
                 </div>
 
                 <h3 class="cv-card-title">{post.data.title}</h3>
@@ -235,15 +243,23 @@ const filterDomains = [
 
       // 1. Filter Featured Post
       if (featuredContainer) {
-        const fDomain = (featuredContainer.dataset.domain || '').toLowerCase();
+        const fDomains = (featuredContainer.dataset.domain || '').toLowerCase().split(',').map(d => d.trim());
         const fTitle = featuredContainer.dataset.title || '';
         const fDesc = featuredContainer.dataset.desc || '';
         const fTags = (featuredContainer.dataset.tags || '').toLowerCase().split(',');
         const fStage = (featuredContainer.dataset.stage || '').toLowerCase();
 
-        const domainMatch = selectedDomain === 'all' || fDomain === selectedDomain.toLowerCase() || fTags.includes(selectedDomain.toLowerCase());
+        const domainMatch =
+          selectedDomain === 'all' ||
+          fDomains.some(
+            (d) =>
+              d === selectedDomain.toLowerCase() ||
+              (selectedDomain.toLowerCase() === 'classical' && (d === 'classical' || d === 'classical cv')) ||
+              (selectedDomain.toLowerCase().includes('detection') && d.includes('detection'))
+          ) ||
+          fTags.includes(selectedDomain.toLowerCase());
         const tagMatch = selectedTag === 'all' || fTags.includes(selectedTag.toLowerCase()) || fStage.includes(selectedTag.toLowerCase());
-        const searchMatch = !q || fTitle.includes(q) || fDesc.includes(q) || fDomain.includes(q) || fStage.includes(q) || fTags.some(t => t.includes(q));
+        const searchMatch = !q || fTitle.includes(q) || fDesc.includes(q) || fDomains.some(d => d.includes(q)) || fStage.includes(q) || fTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {
           featuredContainer.style.display = '';
@@ -255,15 +271,23 @@ const filterDomains = [
 
       // 2. Filter Grid Posts
       gridCards.forEach((card) => {
-        const cDomain = (card.dataset.domain || '').toLowerCase();
+        const cDomains = (card.dataset.domain || '').toLowerCase().split(',').map(d => d.trim());
         const cTitle = card.dataset.title || '';
         const cDesc = card.dataset.desc || '';
         const cTags = (card.dataset.tags || '').toLowerCase().split(',');
         const cStage = (card.dataset.stage || '').toLowerCase();
 
-        const domainMatch = selectedDomain === 'all' || cDomain === selectedDomain.toLowerCase() || cTags.includes(selectedDomain.toLowerCase());
+        const domainMatch =
+          selectedDomain === 'all' ||
+          cDomains.some(
+            (d) =>
+              d === selectedDomain.toLowerCase() ||
+              (selectedDomain.toLowerCase() === 'classical' && (d === 'classical' || d === 'classical cv')) ||
+              (selectedDomain.toLowerCase().includes('detection') && d.includes('detection'))
+          ) ||
+          cTags.includes(selectedDomain.toLowerCase());
         const tagMatch = selectedTag === 'all' || cTags.includes(selectedTag.toLowerCase()) || cStage.includes(selectedTag.toLowerCase());
-        const searchMatch = !q || cTitle.includes(q) || cDesc.includes(q) || cDomain.includes(q) || cStage.includes(q) || cTags.some(t => t.includes(q));
+        const searchMatch = !q || cTitle.includes(q) || cDesc.includes(q) || cDomains.some(d => d.includes(q)) || cStage.includes(q) || cTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {
           card.style.display = '';

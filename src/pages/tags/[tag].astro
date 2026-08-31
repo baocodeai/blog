@@ -9,84 +9,167 @@ export async function getStaticPaths() {
 
   const domainTags = [
     'Computer Vision',
+    'Classical',
     'Classical CV',
     'Deep Learning',
     'Detection & Tracking',
+    'Detection',
+    'Segmentation',
+    'Tracking',
     '3D Vision',
     'Generative AI',
     'MLOps',
     'Edge AI',
     'Image Processing',
     'CLAHE',
+    'Data Augmentation',
   ];
 
   const blogTags = allPosts.flatMap((post) => [
     ...(post.data.tags || []),
-    ...(post.data.domain ? [post.data.domain] : [])
+    ...(Array.isArray(post.data.domain) ? post.data.domain : post.data.domain ? [post.data.domain] : [])
   ]);
   const projectTags = allProjects.flatMap((p) => [
     ...(p.data.techStack || []),
-    ...(p.data.domain ? [p.data.domain] : [])
+    ...(Array.isArray(p.data.domain) ? p.data.domain : p.data.domain ? [p.data.domain] : [])
   ]);
-  const uniqueTags = [...new Set([...domainTags, ...blogTags, ...projectTags])];
+  const rawTags = [...new Set([...domainTags, ...blogTags, ...projectTags])];
 
-  return uniqueTags.map((tag) => {
+  const pathsMap = new Map();
+
+  rawTags.forEach((tag) => {
+    const normTag = tag.trim();
+    if (!normTag) return;
+
     const filteredPosts = allPosts
-      .filter((post) => (post.data.tags?.includes(tag) || post.data.domain?.toLowerCase() === tag.toLowerCase()) && !post.data.draft)
+      .filter((post) => {
+        if (post.data.draft) return false;
+        const postDomains = Array.isArray(post.data.domain)
+          ? post.data.domain
+          : post.data.domain
+            ? [post.data.domain]
+            : [];
+        return (
+          post.data.tags?.some((t) => t.toLowerCase() === normTag.toLowerCase()) ||
+          postDomains.some(
+            (d) =>
+              d.toLowerCase() === normTag.toLowerCase() ||
+              normTag.toLowerCase().includes(d.toLowerCase()) ||
+              d.toLowerCase().includes(normTag.toLowerCase())
+          )
+        );
+      })
       .map((post) => ({ ...post, slug: post.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }))
       .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-    return {
-      params: { tag },
-      props: { posts: filteredPosts },
-    };
+    const filteredProjects = allProjects
+      .filter((p) => {
+        if (p.data.draft) return false;
+        const projectDomains = Array.isArray(p.data.domain)
+          ? p.data.domain
+          : p.data.domain
+            ? [p.data.domain]
+            : [];
+        return (
+          p.data.techStack?.some((t: string) => t.toLowerCase() === normTag.toLowerCase()) ||
+          projectDomains.some(
+            (d: string) =>
+              d.toLowerCase() === normTag.toLowerCase() ||
+              normTag.toLowerCase().includes(d.toLowerCase()) ||
+              d.toLowerCase().includes(normTag.toLowerCase())
+          )
+        );
+      })
+      .map((p) => ({ ...p, slug: p.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }));
+
+    const variations = [
+      normTag,
+      encodeURIComponent(normTag),
+      decodeURIComponent(normTag),
+    ];
+
+    variations.forEach((varTag) => {
+      if (!pathsMap.has(varTag)) {
+        pathsMap.set(varTag, {
+          params: { tag: varTag },
+          props: { displayTag: normTag, posts: filteredPosts, projects: filteredProjects },
+        });
+      }
+    });
   });
+
+  return Array.from(pathsMap.values());
 }
 
 const { tag } = Astro.params;
-const { posts } = Astro.props;
+const { displayTag, posts = [], projects = [] } = Astro.props;
+const currentTag = displayTag || tag;
 ---
 
 <Layout
-  title={`Chủ đề: ${tag} — BaoNV`}
-  description={`Các bài viết chuyên sâu về ${tag}.`}
-  canonicalPath={`/tags/${tag}/`}
+  title={`Chủ đề: ${currentTag} — BaoNV`}
+  description={`Các bài viết và dự án chuyên sâu về ${currentTag}.`}
+  canonicalPath={`/tags/${encodeURIComponent(currentTag)}/`}
 >
   <main class="content-shell">
     <section class="page-hero">
       <a href="/blog/" class="back-link">← Quay lại danh sách bài viết</a>
       <h1 class="visually-hidden">Tags</h1>
-      <TypedLede text={`Chủ đề chuyên môn: ${tag}`} />
+      <TypedLede text={`Chủ đề chuyên môn: ${currentTag}`} />
     </section>
 
-    <section class="section" aria-label={`Blog posts tagged with ${tag}`}>
-      {posts.length === 0 ? (
-        <p style="color: var(--muted); font-family: var(--mono);">Chưa có bài viết nào.</p>
-      ) : (
-        <div class="post-list">
-          {posts.map((post) => (
-            <article class="post-card">
-              <a class="post-card-link" href={`/blog/${post.slug}/`}>
-                <div class="post-card-content">
-                  <h2>{post.data.title}</h2>
-                  <p>{post.data.description}</p>
-                  <p class="post-card-meta">{post.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
-                </div>
-                {post.data.coverImage && (
-                  <div class="post-cover-container">
-                    <img class="post-cover-image" src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src} alt={post.data.title} />
+    <section class="section" aria-label={`Nội dung theo chủ đề ${currentTag}`}>
+      {posts.length === 0 && projects.length === 0 ? (
+        <p style="color: var(--muted); font-family: var(--mono); padding: 2rem 0;">Chưa có bài viết hoặc dự án nào thuộc chủ đề này.</p>
+      ) : null}
+
+      {posts.length > 0 && (
+        <div>
+          <h2 style="font-size: 1.35rem; margin-bottom: 1.5rem; color: var(--ink);">Bài viết ({posts.length})</h2>
+          <div class="post-list">
+            {posts.map((post) => (
+              <article class="post-card">
+                <a class="post-card-link" href={`/blog/${post.slug}/`}>
+                  <div class="post-card-content">
+                    <h2>{post.data.title}</h2>
+                    <p>{post.data.description}</p>
+                    <p class="post-card-meta">{post.data.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
+                  </div>
+                  {post.data.coverImage && (
+                    <div class="post-cover-container">
+                      <img class="post-cover-image" src={typeof post.data.coverImage === 'string' ? post.data.coverImage : post.data.coverImage.src} alt={post.data.title} />
+                    </div>
+                  )}
+                </a>
+                {post.data.tags && post.data.tags.length > 0 && (
+                  <div style="margin-top: 0.2rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    {post.data.tags.map((t: string) => (
+                      <a href={`/tags/${t}/`} class={t.toLowerCase() === currentTag.toLowerCase() ? "tag-pill active" : "tag-pill"}>#{t}</a>
+                    ))}
                   </div>
                 )}
-              </a>
-              {post.data.tags && post.data.tags.length > 0 && (
-                <div style="margin-top: 0.2rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                  {post.data.tags.map((t: string) => (
-                    <a href={`/tags/${t}/`} class={t === tag ? "tag-pill active" : "tag-pill"}>#{t}</a>
-                  ))}
-                </div>
-              )}
-            </article>
-          ))}
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {projects.length > 0 && (
+        <div style="margin-top: 3rem;">
+          <h2 style="font-size: 1.35rem; margin-bottom: 1.5rem; color: var(--ink);">Dự án liên quan ({projects.length})</h2>
+          <div class="post-list">
+            {projects.map((proj) => (
+              <article class="post-card">
+                <a class="post-card-link" href={`/projects/${proj.slug}/`}>
+                  <div class="post-card-content">
+                    <h2>{proj.data.title}</h2>
+                    <p>{proj.data.description}</p>
+                    <p class="post-card-meta">{Array.isArray(proj.data.domain) ? proj.data.domain.join(' · ') : (proj.data.domain || "Project")}</p>
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
         </div>
       )}
     </section>

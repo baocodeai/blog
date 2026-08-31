@@ -38,7 +38,7 @@ const domains = [
   {
     title: "Detection, Segmentation & Tracking",
     description: "Phát hiện đối tượng real-time với YOLOv11, RT-DETR, SAM 2, Faster R-CNN và theo dõi đa đối tượng trong video.",
-    tag: "Detection & Tracking",
+    tag: "Detection",
     image: "/covers/detection.jpg"
   },
   {
@@ -63,7 +63,18 @@ const domains = [
 
 // Helper to count articles per domain tag
 const getDomainPostCount = (tag: string) => {
-  return allPosts.filter((p) => !p.data.draft && (p.data.domain?.toLowerCase() === tag.toLowerCase() || p.data.tags?.some(t => t.toLowerCase() === tag.toLowerCase()))).length;
+  return allPosts.filter((p) => {
+    if (p.data.draft) return false;
+    const postDomains = Array.isArray(p.data.domain)
+      ? p.data.domain
+      : p.data.domain
+        ? [p.data.domain]
+        : [];
+    return (
+      postDomains.some((d) => d.toLowerCase() === tag.toLowerCase()) ||
+      p.data.tags?.some((t) => t.toLowerCase() === tag.toLowerCase())
+    );
+  }).length;
 };
 
 const personSchema = JSON.stringify({
@@ -196,7 +207,7 @@ const personSchema = JSON.stringify({
             </div>
 
             <div class="featured-project-body">
-              <div class="project-domain-label">{p.data.domain || "Computer Vision"}</div>
+              <div class="project-domain-label">{Array.isArray(p.data.domain) ? p.data.domain.join(' · ') : (p.data.domain || "Computer Vision")}</div>
               <h3 class="featured-project-title">
                 <a href={`/projects/${p.slug}/`}>{p.data.title}</a>
               </h3>

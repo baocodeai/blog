@@ -445,8 +445,22 @@
       }
     }
 
+    function isReadingArea(clientX: number, clientY: number): boolean {
+      const p = window.location.pathname.replace(/\/$/, '');
+      if (p.startsWith('/blog/') || (p.startsWith('/blog') && p !== '/blog')) {
+        return true;
+      }
+      if (typeof document !== 'undefined') {
+        const el = document.elementFromPoint(clientX, clientY);
+        if (el && el.closest('.article-shell, .article-prose, .article-layout, .article-header, article, pre, code')) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function updateAndDrawStardust() {
-      if (mouse.speed > 1.5) {
+      if (!isReadingArea(mouse.targetX, mouse.targetY) && mouse.speed > 1.5) {
         const colors = ['#93c5fd', '#c4b5fd', '#fef08a', '#ffffff', '#fed7aa'];
         for (let k = 0; k < 2; k++) {
           stardust.push({
@@ -509,6 +523,8 @@
     function handleClick(e: MouseEvent | TouchEvent) {
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+      if (isReadingArea(clientX, clientY)) return;
 
       const colors = ['#ffffff', '#93c5fd', '#c4b5fd', '#fef08a', '#fed7aa'];
       for (let i = 0; i < 28; i++) {
