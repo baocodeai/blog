@@ -82,20 +82,12 @@ export async function getStaticPaths() {
       })
       .map((p) => ({ ...p, slug: p.id.replace(/\.(md|mdx)$/i, '').replace(/\/index$/, '') }));
 
-    const variations = [
-      normTag,
-      encodeURIComponent(normTag),
-      decodeURIComponent(normTag),
-    ];
-
-    variations.forEach((varTag) => {
-      if (!pathsMap.has(varTag)) {
-        pathsMap.set(varTag, {
-          params: { tag: varTag },
-          props: { displayTag: normTag, posts: filteredPosts, projects: filteredProjects },
-        });
-      }
-    });
+    if (!pathsMap.has(normTag)) {
+      pathsMap.set(normTag, {
+        params: { tag: normTag },
+        props: { displayTag: normTag, posts: filteredPosts, projects: filteredProjects },
+      });
+    }
   });
 
   return Array.from(pathsMap.values());
