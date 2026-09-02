@@ -813,7 +813,10 @@ for epoch in range(start_epoch, config.epochs):
 
 ## 8. Case Study: phân vùng tổn thương da với UNet
 
-[train_evaluate_save_model.ipynb](train_evaluate_save_model.ipynb)
+Toàn bộ mã nguồn thực thi pipeline huấn luyện, đánh giá và quản lý artifact với W&B trên tập dữ liệu ISIC 2018 được cung cấp chi tiết trong file Jupyter Notebook đính kèm bên dưới:
+
+> 📥 **Tải về Jupyter Notebook:** [`train_evaluate_save_model.ipynb`](/blog/wandb-logging/train_evaluate_save_model.ipynb)  
+> *(Bạn có thể tải file về để mở trực tiếp trong VS Code, Jupyter Lab hoặc tải lên Google Colab / Kaggle để chạy).*
 
 ## 9. Kết quả và trực quan hóa
 
