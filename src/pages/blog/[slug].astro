@@ -43,7 +43,7 @@ const postSchema = JSON.stringify({
 >
   <script type="application/ld+json" is:inline set:html={postSchema} />
   <main class="content-shell">
-    <div class="article-layout section" style="max-width: var(--max); padding-inline: 1.25rem;">
+    <div class="article-layout" style="max-width: var(--max); padding-inline: 1.25rem;">
       <aside class="article-toc" aria-label="Article sections">
         {sectionHeadings.length > 0 && (
           <nav>
@@ -67,9 +67,9 @@ const postSchema = JSON.stringify({
             </time>
           </p>
           <h1>{post.data.title}</h1>
-          <p>{post.data.description}</p>
+          <p class="article-description">{post.data.description}</p>
           {post.data.tags && post.data.tags.length > 0 && (
-            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div style="margin-top: 1.25rem; display: flex; gap: 0.45rem; flex-wrap: wrap;">
               {post.data.tags.map((tag: string) => (
                 <a href={`/tags/${tag}/`} class="tag-pill">#{tag}</a>
               ))}

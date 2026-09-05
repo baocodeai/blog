@@ -1140,7 +1140,8 @@ button.nav-icon-link {
     letter-spacing: -0.025em;
 }
 
-.article-header p:last-child {
+.article-header p:last-child,
+.article-header .article-description {
     max-width: 740px;
     margin: 1.25rem 0 0;
     color: color-mix(in srgb, var(--ink) 78%, var(--muted));
@@ -1557,7 +1558,17 @@ button.nav-icon-link {
 
 @media (max-width: 860px) {
     .nav-links { display: none; }
-    .nav-menu { display: block; }
+    .nav-menu {
+        display: block;
+        margin-left: 0.5rem;
+    }
+    .nav-tools {
+        margin-left: auto;
+    }
+    /* Hide social icons from topbar on mobile/tablets; they are accessible inside hamburger menu */
+    .nav-tools a.nav-icon-link {
+        display: none;
+    }
 
     .about-grid {
         display: block;
@@ -1584,43 +1595,65 @@ button.nav-icon-link {
    meet) closer to the viewport. */
 @media (max-width: 640px) {
     .page-hero {
-        padding-top: 2.75rem;
-        padding-bottom: 1.75rem;
+        padding-top: 2rem;
+        padding-bottom: 1.5rem;
     }
 
     .section {
-        padding-top: 3rem;
-        padding-bottom: 3rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 
     .content-shell {
-        padding-bottom: 3rem;
+        padding-bottom: 2rem;
     }
 
     .article-layout {
-        padding-top: 2.25rem;
+        padding-top: 1.25rem;
+    }
+
+    .article-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .article-header h1,
+    .article-header .article-title {
+        font-size: clamp(1.35rem, 5.2vw, 1.7rem);
+        line-height: 1.28;
+        letter-spacing: -0.015em;
+    }
+
+    .article-header p:last-child,
+    .article-header .article-description {
+        font-size: 0.95rem;
+        line-height: 1.55;
+        margin-top: 0.65rem;
+    }
+
+    .article-header .post-meta {
+        font-size: 0.8rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .tag-pill {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.65rem;
     }
 
     .skills-marquee {
-        margin-top: 3rem;
+        margin-top: 2rem;
     }
 
-    .nav-tools {
-        gap: 0.35rem;
-    }
-
-    /* The brand + hamburger + icon row don't all fit on one line below
-       ~370px (iPhone SE and similar) — wrap the icon row onto its own
-       line instead of letting it overflow the viewport. Harmless on
-       wider phones where everything already fits on one row. */
     .nav {
-        flex-wrap: wrap;
-        row-gap: 0.5rem;
+        flex-wrap: nowrap;
+        padding: 0.65rem 1rem;
     }
 
     .nav-tools {
-        flex-basis: 100%;
+        flex-basis: auto;
         justify-content: flex-end;
+        gap: 0.35rem;
     }
 }
 
