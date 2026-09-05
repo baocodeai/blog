@@ -8,20 +8,17 @@ category: MLOps
 domain: MLOps
 specs:
   - End-to-End MLOps
-  - Architecture
-coverImage: "./cover.png"
+coverImage: ./cover.png
 tags:
   - MLOps
-  - Machine Learning
-  - Data Engineering
 readingTime: 12 min read
 ---
 
-Trong phát triển phần mềm ứng dụng trí tuệ nhân tạo (AI/ML), có một nghịch lý phổ biến: hơn 80% mô hình Machine Learning đạt độ chính xác cao trong môi trường thử nghiệm (Jupyter Notebook) nhưng không bao giờ được đưa lên môi trường thực tế (Production). Lý do chính không nằm ở thuật toán, mà xuất phát từ việc thiếu một quy trình MLOps chuẩn mực và cấu trúc dự án có khả năng mở rộng, bảo trì cao.
+Trong phát triển phần mềm ứng dụng trí tuệ nhân tạo (AI/ML), có một nghịch lý phổ biến: hơn 80% mô hình Machine Learning đạt độ chính xác cao trong môi trường thử nghiệm như notebook nhưng không bao giờ được đưa lên môi trường thực tế. Lý do chính không nằm ở thuật toán, mà xuất phát từ việc thiếu một quy trình MLOps chuẩn mực và cấu trúc dự án có khả năng mở rộng, bảo trì cao.
 
 ---
 
-## Vòng đời MLOps (End-to-End Workflow)
+## Vòng đời MLOps
 
 MLOps là sự kết hợp giữa Machine Learning, Data Engineering và DevOps nhằm xây dựng, tự động hóa và duy trì các pipeline AI liên tục, đáng tin cậy.
 
@@ -35,7 +32,7 @@ Một chu trình MLOps hoàn chỉnh bao gồm 4 trụ cột nối tiếp nhau:
 
 ---
 
-## Giai đoạn 1: Định nghĩa Bài toán Kinh doanh
+## Giai đoạn 1: Định nghĩa bài toán kinh doanh
 
 Trước khi đi vào giải quyết vấn đề và huấn luyện mô hình ta phải hiểu rõ tác động kinh doanh và ràng buộc hệ thống.
 
@@ -44,26 +41,26 @@ Trước khi đi vào giải quyết vấn đề và huấn luyện mô hình ta
 Để định hình một bài toán khả thi, cần trả lời 5 nhóm câu hỏi cốt lõi:
 
 ### 1. Xác định mục tiêu và kết quả đầu ra
-- **Description**: Doanh nghiệp đang gặp nút thắt (bottleneck) nào?
-- **Outcome**(kết quả thành công về mặt nghiệp vụ): ví dụ như giảm …% thời gian xử lý thủ công và đạt tỉ lệ sai sót dưới …% trong vận hành thực tế đây không phải chỉ số trên test set.
+- **Description**: Doanh nghiệp đang gặp vấn đề nào?
+- **Outcome**: kết quả thành công về mặt nghiệp vụ, ví dụ như giảm …% thời gian xử lý thủ công và đạt tỉ lệ sai sót dưới …% trong vận hành thực tế đây không phải chỉ số trên test set.
 - **Action**: Khi mô hình trả về kết quả dự đoán, hệ thống hoặc nhân sự sẽ làm gì tiếp theo?
 ### 2. Định nghĩa bài toán Machine Learning
-- **Task Type**: Bài toán thuộc dạng nào? (Classification, Regression, Ranking, Object Detection, Time-series Forecasting...).
+- **Task Type**: Bài toán thuộc dạng nào? classification, reegression, object detection,...
 - **Prediction**: Biến mục tiêu cần dự đoán chính xác là gì?
-- **Input Data**: Dữ liệu thô đầu vào gồm những trường nào, dạng dữ liệu gì (bảng, hình ảnh, văn bản)?
-- **Training**:Mô hình sẽ được trên như nào??
-### 3. Đánh giá tính khả thi và thiết lập Baseline
-- **Baseline**: Xây dựng giải pháp đơn giản nhất (ví dụ: Rule-based hoặc Logistic Regression) để làm mốc tham chiếu hiệu năng tối thiểu.
+- **Input Data**: Dữ liệu thô đầu vào gồm những trường nào, dạng dữ liệu gì ?
+- **Training**: Mô hình sẽ được huấn luyện như nào??
+### 3. Đánh giá tính khả thi và thiết lập baseline
+- **Baseline**: Xây dựng giải pháp đơn giản nhất để làm mốc tham chiếu hiệu năng tối thiểu.
 - **Constraints**: 
   - Độ trễ suy luận tối đa (Inference Latency SLA: ví dụ $< 50\text{ms}$).
   - Kích thước mô hình (Memory / Disk footprint: ví dụ $< 200\text{MB}$).
   - Tài nguyên phần cứng (CPU vs GPU inference, RAM, băng thông mạng).
 ### 4. Chiến lược đánh giá và òng lặp Phản hồi
 - **Judgement**: dùng chỉ số kỹ thuật nào để biết mô hình tốt ?
-- **Feedback**: Cơ chế thu thập dữ liệu mới từ production để phát hiện Data Drift và retrain lại mô hình. 
+- **Feedback**: Cơ chế thu thập dữ liệu mới từ production để phát hiện data drift và retrain lại mô hình. 
 ### 5. Tác động, rủi ro
 - **AI Impact**: mô hình có ảnh ưởng thế nào
-- **Bias/Fairnes**s: Mô hình có nguy cơ phân biệt đối xử với một nhóm khách hàng cụ thể nào không? Quyết định có cần được giải thích rõ ràng (Explainability) cho người dùng không?
+- **Bias/Fairnes**s: Mô hình có nguy cơ phân biệt đối xử với một nhóm khách hàng cụ thể nào không? kết quả có cần được giải thích rõ ràng cho người dùng không?
 ## Giai đoạn 2: Data Engineering
 
 Dữ liệu là nhiên liệu của mọi hệ thống AI, nên trước khi đi vào huấn luyện mô hình thì phải đảm bảo dữ liệu sạch và phù hợp với mô hình. 
@@ -73,38 +70,39 @@ Dữ liệu là nhiên liệu của mọi hệ thống AI, nên trước khi đi
 Quy trình Data Engineering bao gồm:
 ### 1. Data Ingestion
 - xác định nguồn dữ liệu, ước lượng dung lượng và xác định vị trí lưu
-- Thiết lập sao lưu dự phòng, ghi nhận Metadata Catalog (nguồn gốc, schema version, timestamp) và đảm bảo tuân thủ quyền riêng tư (GDPR, HIPAA).
+- Thiết lập sao lưu dự phòng, ghi nhận metadata catalog như nguồn gốc, schema version, thời gian và đảm bảo tuân thủ quyền riêng tư như GDPR, HIPAA.
 ### 2. Exploration and validation 
-- Sử dụng các công cụ phân tích (Pandas, Polars,...).
+- Sử dụng các công cụ phân tích như numpy, pandas, seaborn, matplotlib,...
 - Phân tích kiểu dữ liệu, phân phối xác suất, khoảng giá trị min/max.
-- Phát hiện rò rỉ dữ liệu (Data Leakage) và mối tương quan chéo giữa các đặc trưng.
-### 3. Data Cleaning (Làm sạch dữ liệu)
+- Phát hiện rò rỉ dữ liệu và mối tương quan giữa các đặc trưng.
+### 3. Data Cleaning
 - Xử lý giá trị khuyết thiếu.
 - Xử lý giá trị ngoại lai.
 - Biến đổi dữ liệu
-- Chuẩn hóa kiểu dữ liệu, loại bỏ dữ liệu rác/trùng lặp và biến đổi cấu trúc bảng (Pivot, Unpivot, Join).
-### 4. Data Labeling (Gán nhãn)
+- Chuẩn hóa kiểu dữ liệu, loại bỏ dữ liệu rác hoặc trùng lặp.
+### 4. Data Labeling
 - Thực hiện gán nhãn thủ công hoặc bán tự động.
-### 5. Data Splitting (Phân chia tập dữ liệu)
-- Chia tách nghiêm ngặt thành 3 tập: **Train Set**, **Validation Set**, và **Test Set**.
-- Sử dụng **Stratified Split** cho dữ liệu mất cân bằng nhãn hoặc **Time-series Split** (Walk-forward) cho dữ liệu chuỗi thời gian để tuyệt đối tránh rò rỉ tương lai (look-ahead bias).
+### 5. Data Splitting
+- Chia tách nghiêm ngặt thành 3 tập: **Train Set**, **Validation Set**, và **Test Set**. Tuỳ bài toán và phải có chiến lược cụ thể như chia bao nhiêu %. 
+- Sử dụng **Stratified Split** cho dữ liệu mất cân bằng nhãn hoặc **Time-series Split** cho dữ liệu chuỗi thời gian để tuyệt đối tránh rò rỉ tương lai.
 
 ---
 
 ## Giai đoạn 3: Huấn luyện và đóng gói mô hình
 
-Model Engineering biến dữ liệu đã làm sạch thành các mô hình toán học tối ưu, sẵn sàng phục vụ cho suy luận.
+Model Engineering biến dữ liệu đã làm sạch thành các mô hình toán học tối ưu, sẵn sàng phục vụ cho giai đoạn suy luận.
 
 ![Quy trình Model Engineering: Feature Engineering, Training, Evaluation, Testing và Packaging](./model-engineering.png)
 
-### 1. Feature Engineering & Preprocessing
-- **Biến đổi phân phối**: Dùng Log Transform,... để chuyển dữ liệu lệch về phân phối chuẩn (Gaussian distribution).
-- **Mã hóa đặc trưng**: Rời rạc hóa, One-Hot Encoding, Target Encoding, hoặc Text/Image Embeddings.
-- **Chuẩn hóa (Feature Scaling)**: Chuẩn hóa dữ liệu về cùng một tỷ lệ.
-### 2. Huấn luyện & Quản lý Thí nghiệm (Experiment Tracking)
+### 1. Feature engineering và preprocessing
+- **Biến đổi phân phối**: Dùng Log Transform,... để chuyển dữ liệu lệch về phân phối chuẩn.
+- **Mã hóa đặc trưng**: Rời rạc hóa, one-hot encoding, target encoding, hoặc text/image embeddings.
+- **Chuẩn hóa**: Chuẩn hóa dữ liệu về cùng một tỷ lệ để loại bỏ thiên vị về độ lớn đối với các đặc trưng khác nhau cũng như đảm bảo thuật toán hội tụ nhanh và ổn định hơn.
+### 2. Huấn luyện và quản lý các thí nghiệm
 - Ghi nhận toàn bộ siêu tham số, metrics, artifacts bằng các công cụ chuyên dụng như **MLflow**.
-- Tìm kiếm siêu tham số tối ưu bằng Bayesian Optimization hoặc GridSearch, RandomSearch.
-### 3. Đánh giá & Kiểm thử Mô hình (Evaluation & Blind Testing)
+- Tìm kiếm siêu tham số tối ưu bằng `Bayesian Optimization` hoặc `GridSearch`, `RandomSearch`.
+> **Đọc thêm**: [Tối ưu hóa huấn luyện Deep Learning với Weights & Biases (W&B)](/blog/wandb-logging/index.md)
+### 3. Đánh giá và kiểm thử mô hình
 - **Model Evaluation**: Đánh giá đa chiều trên Validation Set sau mỗi epoch/iteration.
 - **Model Testing**: Kiểm thử độc lập lần cuối trên Blind Test Set (tuyệt đối không chạm vào trong quá trình training/tuning).
 - **Slice-based & Invariance Testing**: Kiểm tra hiệu năng trên từng nhóm nhỏ (sub-groups) và khả năng chịu nhiễu (Perturbation testing).
