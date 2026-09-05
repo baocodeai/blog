@@ -45,61 +45,160 @@ const filterDomains = [
     
     <!-- 1. TOP BAR: DOMAIN CHIPS + TAG DROPDOWN + INSTANT SEARCH -->
     <section class="blog-top-bar" aria-label="Bộ lọc và tìm kiếm bài viết">
-      <div class="filter-chips-group" role="tablist" aria-label="Lọc theo lĩnh vực">
-        {filterDomains.map((dm, idx) => (
-          <button
-            class={`filter-chip-btn ${idx === 0 ? 'is-active' : ''}`}
-            data-domain={dm.id}
-            type="button"
-            role="tab"
-            aria-selected={idx === 0 ? 'true' : 'false'}
-          >
-            {dm.label}
-          </button>
-        ))}
-      </div>
-
-      <div class="top-bar-controls-right">
-        <!-- TAGS SELECTOR DROPDOWN -->
-        <div class="tags-dropdown-wrapper">
-          <label for="blog-tag-select" class="visually-hidden">Lọc theo thẻ</label>
-          <div class="custom-select-box">
-            <svg class="select-tag-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-              <line x1="7" y1="7" x2="7.01" y2="7" />
-            </svg>
-            <select id="blog-tag-select" class="blog-tag-select" aria-label="Chọn thẻ chuyên môn">
-              <option value="all">🏷️ Tất cả thẻ ({allTags.length})</option>
-              {allTags.map((tag) => {
-                const count = posts.filter((p) => p.data.tags?.includes(tag)).length;
-                return (
-                  <option value={tag.toLowerCase()}>#{tag} ({count})</option>
-                );
-              })}
-            </select>
-            <svg class="select-chevron-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </div>
+      <!-- DESKTOP FILTER BAR -->
+      <div class="desktop-filter-bar">
+        <div class="filter-chips-group" role="tablist" aria-label="Lọc theo lĩnh vực">
+          {filterDomains.map((dm, idx) => (
+            <button
+              class={`filter-chip-btn ${idx === 0 ? 'is-active' : ''}`}
+              data-domain={dm.id}
+              type="button"
+              role="tab"
+              aria-selected={idx === 0 ? 'true' : 'false'}
+            >
+              {dm.label}
+            </button>
+          ))}
         </div>
 
-        <!-- SEARCH INPUT -->
-        <div class="search-box-wrapper">
+        <div class="top-bar-controls-right">
+          <!-- TAGS SELECTOR DROPDOWN -->
+          <div class="tags-dropdown-wrapper">
+            <label for="blog-tag-select" class="visually-hidden">Lọc theo thẻ</label>
+            <div class="custom-select-box">
+              <svg class="select-tag-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <select id="blog-tag-select" class="blog-tag-select" aria-label="Chọn thẻ chuyên môn">
+                <option value="all">🏷️ Tất cả thẻ ({allTags.length})</option>
+                {allTags.map((tag) => {
+                  const count = posts.filter((p) => p.data.tags?.includes(tag)).length;
+                  return (
+                    <option value={tag.toLowerCase()}>#{tag} ({count})</option>
+                  );
+                })}
+              </select>
+              <svg class="select-chevron-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- SEARCH INPUT -->
+          <div class="search-box-wrapper">
+            <svg class="search-box-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="search"
+              id="blog-search-input"
+              class="blog-search-input"
+              placeholder="Tìm bài viết, kỹ năng..."
+              aria-label="Tìm bài viết"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE FILTER BAR: COMPACT SEARCH + BOTTOM SHEET TRIGGER BUTTON -->
+      <div class="mobile-filter-bar">
+        <div class="mobile-search-wrapper">
           <svg class="search-box-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
             type="search"
-            id="blog-search-input"
-            class="blog-search-input"
+            id="mobile-search-input"
+            class="mobile-search-input"
             placeholder="Tìm bài viết, kỹ năng..."
-            aria-label="Tìm bài viết"
+            aria-label="Tìm bài viết trên di động"
             autocomplete="off"
           />
         </div>
+        <button
+          type="button"
+          id="mobile-filter-trigger"
+          class="mobile-filter-trigger-btn"
+          aria-label="Mở bộ lọc bài viết"
+          aria-haspopup="dialog"
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          <span>Lọc</span>
+          <span id="mobile-filter-badge" class="mobile-filter-badge" style="display: none;">0</span>
+        </button>
       </div>
     </section>
+
+    <!-- MOBILE BOTTOM SHEET MODAL -->
+    <div id="filter-sheet-overlay" class="filter-sheet-overlay" role="dialog" aria-modal="true" aria-labelledby="sheet-title" aria-hidden="true">
+      <div id="filter-sheet-backdrop" class="filter-sheet-backdrop"></div>
+      <div class="filter-sheet-container">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-header">
+          <div class="sheet-header-title-group">
+            <h2 id="sheet-title" class="sheet-title">Bộ lọc bài viết</h2>
+            <span id="sheet-match-count" class="sheet-subtitle">({posts.length} bài)</span>
+          </div>
+          <button type="button" id="sheet-close-btn" class="sheet-close-btn" aria-label="Đóng bảng lọc">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="sheet-body">
+          <!-- DOMAIN SELECTION (2 COLUMNS) -->
+          <div class="sheet-section">
+            <span class="sheet-section-label">Chuyên mục / Lĩnh vực</span>
+            <div class="sheet-domains-grid" role="radiogroup" aria-label="Chọn chuyên mục">
+              {filterDomains.map((dm, idx) => (
+                <button
+                  type="button"
+                  class={`sheet-domain-btn ${idx === 0 ? 'is-active' : ''}`}
+                  data-domain={dm.id}
+                  role="radio"
+                  aria-checked={idx === 0 ? 'true' : 'false'}
+                >
+                  <span class="sheet-domain-dot"></span>
+                  <span>{dm.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <!-- TAGS SELECTOR -->
+          <div class="sheet-section">
+            <label for="sheet-tag-select" class="sheet-section-label">Thẻ chuyên môn (Tags)</label>
+            <div class="sheet-tag-select-wrapper">
+              <select id="sheet-tag-select" class="sheet-tag-select" aria-label="Chọn thẻ chuyên môn">
+                <option value="all">🏷️ Tất cả thẻ ({allTags.length})</option>
+                {allTags.map((tag) => {
+                  const count = posts.filter((p) => p.data.tags?.includes(tag)).length;
+                  return (
+                    <option value={tag.toLowerCase()}>#{tag} ({count})</option>
+                  );
+                })}
+              </select>
+              <svg class="select-chevron-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: 1rem; pointer-events: none; color: var(--muted);">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-footer">
+          <button type="button" id="sheet-btn-reset" class="sheet-btn-reset">Đặt lại</button>
+          <button type="button" id="sheet-btn-apply" class="sheet-btn-apply">Áp dụng</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 2. FEATURED POST CARD (WIDE 2-COL HERO) -->
     {featuredPost && (
@@ -242,9 +341,24 @@ const filterDomains = [
 
 <script>
   function setupCvBlogFilters() {
+    // Desktop elements
     const chipBtns = document.querySelectorAll<HTMLButtonElement>('.filter-chip-btn');
     const tagSelect = document.getElementById('blog-tag-select') as HTMLSelectElement | null;
     const searchInput = document.getElementById('blog-search-input') as HTMLInputElement | null;
+
+    // Mobile & Bottom Sheet elements
+    const mobileSearchInput = document.getElementById('mobile-search-input') as HTMLInputElement | null;
+    const mobileFilterTrigger = document.getElementById('mobile-filter-trigger') as HTMLButtonElement | null;
+    const mobileFilterBadge = document.getElementById('mobile-filter-badge');
+    const sheetOverlay = document.getElementById('filter-sheet-overlay');
+    const sheetBackdrop = document.getElementById('filter-sheet-backdrop');
+    const sheetCloseBtn = document.getElementById('sheet-close-btn');
+    const sheetDomainBtns = document.querySelectorAll<HTMLButtonElement>('.sheet-domain-btn');
+    const sheetTagSelect = document.getElementById('sheet-tag-select') as HTMLSelectElement | null;
+    const sheetBtnReset = document.getElementById('sheet-btn-reset');
+    const sheetBtnApply = document.getElementById('sheet-btn-apply');
+    const sheetMatchCount = document.getElementById('sheet-match-count');
+
     const featuredContainer = document.getElementById('featured-post-container');
     const gridCards = document.querySelectorAll<HTMLElement>('.cv-post-card');
     const emptyState = document.getElementById('blog-empty-state');
@@ -265,6 +379,74 @@ const filterDomains = [
     let selectedDomain = 'all';
     let selectedTag = 'all';
     let searchQuery = '';
+
+    function openBottomSheet() {
+      if (!sheetOverlay) return;
+      sheetOverlay.classList.add('is-open');
+      sheetOverlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeBottomSheet() {
+      if (!sheetOverlay) return;
+      sheetOverlay.classList.remove('is-open');
+      sheetOverlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function updateActiveFilterBadge() {
+      let count = 0;
+      if (selectedDomain !== 'all') count++;
+      if (selectedTag !== 'all') count++;
+      if (searchQuery.trim().length > 0) count++;
+
+      if (mobileFilterBadge) {
+        if (count > 0) {
+          mobileFilterBadge.textContent = String(count);
+          mobileFilterBadge.style.display = 'inline-flex';
+        } else {
+          mobileFilterBadge.style.display = 'none';
+        }
+      }
+
+      if (mobileFilterTrigger) {
+        mobileFilterTrigger.classList.toggle('has-active-filter', count > 0);
+      }
+    }
+
+    function syncDomainActiveStates(domainId: string) {
+      chipBtns.forEach((btn) => {
+        const isActive = (btn.dataset.domain || 'all') === domainId;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      sheetDomainBtns.forEach((btn) => {
+        const isActive = (btn.dataset.domain || 'all') === domainId;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+    }
+
+    function syncTagActiveStates(tagVal: string) {
+      if (tagSelect && tagSelect.value !== tagVal) tagSelect.value = tagVal;
+      if (sheetTagSelect && sheetTagSelect.value !== tagVal) sheetTagSelect.value = tagVal;
+    }
+
+    function syncSearchActiveStates(query: string) {
+      if (searchInput && searchInput.value !== query) searchInput.value = query;
+      if (mobileSearchInput && mobileSearchInput.value !== query) mobileSearchInput.value = query;
+    }
+
+    function resetAllFilters() {
+      selectedDomain = 'all';
+      selectedTag = 'all';
+      searchQuery = '';
+      syncDomainActiveStates('all');
+      syncTagActiveStates('all');
+      syncSearchActiveStates('');
+      filterPosts(true);
+    }
 
     function scrollToTopGridIfNeeded() {
       const target = document.getElementById('cv-posts-grid');
@@ -371,7 +553,6 @@ const filterDomains = [
         if (prevBtn) prevBtn.disabled = currentPage <= 1;
         if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 
-        // Cập nhật đổi màu trạng thái active cho nút số trang
         const pageBtns = paginationPages?.querySelectorAll<HTMLButtonElement>('.pagination-page-btn');
         pageBtns?.forEach((btn) => {
           const p = Number(btn.dataset.page);
@@ -385,7 +566,6 @@ const filterDomains = [
         });
       }
 
-      // Hiển thị các bài viết thuộc trang hiện tại
       const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
       const endIndex = startIndex + POSTS_PER_PAGE;
 
@@ -393,7 +573,7 @@ const filterDomains = [
         if (idx >= startIndex && idx < endIndex) {
           card.style.display = '';
           card.classList.remove('fade-in');
-          void card.offsetWidth; // Trigger reflow for smooth animation
+          void card.offsetWidth;
           card.classList.add('fade-in');
         } else {
           card.style.display = 'none';
@@ -401,7 +581,6 @@ const filterDomains = [
         }
       });
 
-      // Featured post: luôn hiển thị cố định nếu khớp bộ lọc
       if (featuredContainer) {
         featuredContainer.style.display = isFeaturedMatching ? '' : 'none';
       }
@@ -473,6 +652,12 @@ const filterDomains = [
         emptyState.hidden = totalVisible > 0;
       }
 
+      if (sheetMatchCount) {
+        sheetMatchCount.textContent = `(${totalVisible} bài)`;
+      }
+
+      updateActiveFilterBadge();
+
       const totalPages = Math.ceil(matchingCards.length / POSTS_PER_PAGE);
       renderPagination(totalPages);
       updatePageDisplay();
@@ -492,47 +677,78 @@ const filterDomains = [
       goToPage(currentPage + 1);
     });
 
+    // Desktop domain chips
     chipBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
-        chipBtns.forEach((b) => {
-          b.classList.remove('is-active');
-          b.setAttribute('aria-selected', 'false');
-        });
-        btn.classList.add('is-active');
-        btn.setAttribute('aria-selected', 'true');
-        selectedDomain = btn.dataset.domain || 'all';
+        const domain = btn.dataset.domain || 'all';
+        selectedDomain = domain;
+        syncDomainActiveStates(domain);
         filterPosts(true);
       });
     });
 
+    // Bottom Sheet domain buttons
+    sheetDomainBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const domain = btn.dataset.domain || 'all';
+        selectedDomain = domain;
+        syncDomainActiveStates(domain);
+        filterPosts(true);
+      });
+    });
+
+    // Desktop tag select
     tagSelect?.addEventListener('change', (e) => {
       selectedTag = (e.target as HTMLSelectElement).value;
+      syncTagActiveStates(selectedTag);
       filterPosts(true);
     });
 
+    // Bottom Sheet tag select
+    sheetTagSelect?.addEventListener('change', (e) => {
+      selectedTag = (e.target as HTMLSelectElement).value;
+      syncTagActiveStates(selectedTag);
+      filterPosts(true);
+    });
+
+    // Desktop search
     searchInput?.addEventListener('input', (e) => {
       searchQuery = (e.target as HTMLInputElement).value;
+      if (mobileSearchInput) mobileSearchInput.value = searchQuery;
       filterPosts(true);
     });
 
-    resetBtn?.addEventListener('click', () => {
-      selectedDomain = 'all';
-      selectedTag = 'all';
-      searchQuery = '';
-      if (searchInput) searchInput.value = '';
-      if (tagSelect) tagSelect.value = 'all';
-
-      chipBtns.forEach((b, idx) => {
-        b.classList.toggle('is-active', idx === 0);
-        b.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
-      });
-
+    // Mobile search
+    mobileSearchInput?.addEventListener('input', (e) => {
+      searchQuery = (e.target as HTMLInputElement).value;
+      if (searchInput) searchInput.value = searchQuery;
       filterPosts(true);
+    });
+
+    // Reset handlers
+    resetBtn?.addEventListener('click', resetAllFilters);
+    sheetBtnReset?.addEventListener('click', resetAllFilters);
+
+    // Bottom Sheet open / close
+    mobileFilterTrigger?.addEventListener('click', openBottomSheet);
+    sheetCloseBtn?.addEventListener('click', closeBottomSheet);
+    sheetBackdrop?.addEventListener('click', closeBottomSheet);
+    sheetBtnApply?.addEventListener('click', closeBottomSheet);
+
+    // Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sheetOverlay?.classList.contains('is-open')) {
+        closeBottomSheet();
+      }
     });
 
     // Initial run
     filterPosts(true);
   }
+
+  document.addEventListener('astro:before-swap', () => {
+    document.body.style.overflow = '';
+  });
 
   document.addEventListener('astro:page-load', setupCvBlogFilters);
 </script>
