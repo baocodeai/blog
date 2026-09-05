@@ -216,6 +216,25 @@ const filterDomains = [
         <p>Không tìm thấy bài viết nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm.</p>
         <button type="button" class="btn-reset-filters" id="btn-reset-filters">Đặt lại bộ lọc</button>
       </div>
+
+      <!-- 4. CLIENT-SIDE PAGINATION -->
+      <nav id="blog-pagination" class="blog-pagination" aria-label="Phân trang danh sách bài viết" hidden>
+        <button type="button" class="pagination-btn" id="pagination-prev" aria-label="Trang trước">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span>Trước</span>
+        </button>
+
+        <div class="pagination-pages" id="pagination-pages"></div>
+
+        <button type="button" class="pagination-btn" id="pagination-next" aria-label="Trang sau">
+          <span>Sau</span>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </nav>
     </section>
 
   </main>
@@ -231,17 +250,172 @@ const filterDomains = [
     const emptyState = document.getElementById('blog-empty-state');
     const resetBtn = document.getElementById('btn-reset-filters');
 
+    const paginationNav = document.getElementById('blog-pagination');
+    const paginationPages = document.getElementById('pagination-pages');
+    const prevBtn = document.getElementById('pagination-prev') as HTMLButtonElement | null;
+    const nextBtn = document.getElementById('pagination-next') as HTMLButtonElement | null;
+
     if (!gridCards.length && !featuredContainer) return;
+
+    const POSTS_PER_PAGE = 6;
+    let currentPage = 1;
+    let matchingCards: HTMLElement[] = [];
+    let isFeaturedMatching = false;
 
     let selectedDomain = 'all';
     let selectedTag = 'all';
     let searchQuery = '';
 
-    function filterPosts() {
-      let visibleCount = 0;
+    function scrollToTopGridIfNeeded() {
+      const target = document.getElementById('cv-posts-grid');
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        if (rect.top < 60) {
+          const headerOffset = 90;
+          const elementPosition = rect.top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+
+    function goToPage(page: number) {
+      const totalPages = Math.ceil(matchingCards.length / POSTS_PER_PAGE);
+      if (page < 1 || page > totalPages || page === currentPage) return;
+      currentPage = page;
+      updatePageDisplay();
+      scrollToTopGridIfNeeded();
+    }
+
+    function renderPagination(totalPages: number) {
+      if (!paginationNav || !paginationPages || !prevBtn || !nextBtn) return;
+
+      if (totalPages <= 1) {
+        paginationNav.hidden = true;
+        paginationNav.style.display = 'none';
+        paginationPages.innerHTML = '';
+        return;
+      }
+
+      paginationNav.hidden = false;
+      paginationNav.style.display = 'flex';
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      paginationPages.innerHTML = '';
+
+      const createBtn = (p: number) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `pagination-page-btn ${p === currentPage ? 'is-active' : ''}`;
+        btn.textContent = String(p);
+        btn.dataset.page = String(p);
+        btn.setAttribute('aria-label', `Trang ${p}`);
+        if (p === currentPage) {
+          btn.setAttribute('aria-current', 'page');
+        }
+        return btn;
+      };
+
+      const createEllipsis = () => {
+        const span = document.createElement('span');
+        span.className = 'pagination-ellipsis';
+        span.textContent = '…';
+        span.setAttribute('aria-hidden', 'true');
+        return span;
+      };
+
+      if (totalPages <= 6) {
+        for (let i = 1; i <= totalPages; i++) {
+          paginationPages.appendChild(createBtn(i));
+        }
+      } else {
+        paginationPages.appendChild(createBtn(1));
+
+        let start = Math.max(2, currentPage - 1);
+        let end = Math.min(totalPages - 1, currentPage + 1);
+
+        if (currentPage <= 3) {
+          start = 2;
+          end = 4;
+        } else if (currentPage >= totalPages - 2) {
+          start = totalPages - 3;
+          end = totalPages - 1;
+        }
+
+        if (start > 2) paginationPages.appendChild(createEllipsis());
+        for (let i = start; i <= end; i++) {
+          paginationPages.appendChild(createBtn(i));
+        }
+        if (end < totalPages - 1) paginationPages.appendChild(createEllipsis());
+
+        paginationPages.appendChild(createBtn(totalPages));
+      }
+    }
+
+    function updatePageDisplay() {
+      const totalPages = Math.ceil(matchingCards.length / POSTS_PER_PAGE);
+
+      if (totalPages <= 1) {
+        if (paginationNav) {
+          paginationNav.hidden = true;
+          paginationNav.style.display = 'none';
+        }
+      } else {
+        if (paginationNav) {
+          paginationNav.hidden = false;
+          paginationNav.style.display = 'flex';
+        }
+        if (prevBtn) prevBtn.disabled = currentPage <= 1;
+        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+        // Cập nhật đổi màu trạng thái active cho nút số trang
+        const pageBtns = paginationPages?.querySelectorAll<HTMLButtonElement>('.pagination-page-btn');
+        pageBtns?.forEach((btn) => {
+          const p = Number(btn.dataset.page);
+          const isActive = p === currentPage;
+          btn.classList.toggle('is-active', isActive);
+          if (isActive) {
+            btn.setAttribute('aria-current', 'page');
+          } else {
+            btn.removeAttribute('aria-current');
+          }
+        });
+      }
+
+      // Hiển thị các bài viết thuộc trang hiện tại
+      const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+      const endIndex = startIndex + POSTS_PER_PAGE;
+
+      matchingCards.forEach((card, idx) => {
+        if (idx >= startIndex && idx < endIndex) {
+          card.style.display = '';
+          card.classList.remove('fade-in');
+          void card.offsetWidth; // Trigger reflow for smooth animation
+          card.classList.add('fade-in');
+        } else {
+          card.style.display = 'none';
+          card.classList.remove('fade-in');
+        }
+      });
+
+      // Featured post: luôn hiển thị cố định nếu khớp bộ lọc
+      if (featuredContainer) {
+        featuredContainer.style.display = isFeaturedMatching ? '' : 'none';
+      }
+    }
+
+    function filterPosts(resetToFirstPage = true) {
+      if (resetToFirstPage) {
+        currentPage = 1;
+      }
+
       const q = searchQuery.trim().toLowerCase();
 
       // 1. Filter Featured Post
+      isFeaturedMatching = false;
       if (featuredContainer) {
         const fDomains = (featuredContainer.dataset.domain || '').toLowerCase().split(',').map(d => d.trim());
         const fTitle = featuredContainer.dataset.title || '';
@@ -262,14 +436,12 @@ const filterDomains = [
         const searchMatch = !q || fTitle.includes(q) || fDesc.includes(q) || fDomains.some(d => d.includes(q)) || fStage.includes(q) || fTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {
-          featuredContainer.style.display = '';
-          visibleCount++;
-        } else {
-          featuredContainer.style.display = 'none';
+          isFeaturedMatching = true;
         }
       }
 
       // 2. Filter Grid Posts
+      matchingCards = [];
       gridCards.forEach((card) => {
         const cDomains = (card.dataset.domain || '').toLowerCase().split(',').map(d => d.trim());
         const cTitle = card.dataset.title || '';
@@ -290,17 +462,35 @@ const filterDomains = [
         const searchMatch = !q || cTitle.includes(q) || cDesc.includes(q) || cDomains.some(d => d.includes(q)) || cStage.includes(q) || cTags.some(t => t.includes(q));
 
         if (domainMatch && tagMatch && searchMatch) {
-          card.style.display = '';
-          visibleCount++;
+          matchingCards.push(card);
         } else {
           card.style.display = 'none';
         }
       });
 
+      const totalVisible = matchingCards.length + (isFeaturedMatching ? 1 : 0);
       if (emptyState) {
-        emptyState.hidden = visibleCount > 0;
+        emptyState.hidden = totalVisible > 0;
       }
+
+      const totalPages = Math.ceil(matchingCards.length / POSTS_PER_PAGE);
+      renderPagination(totalPages);
+      updatePageDisplay();
     }
+
+    paginationPages?.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.pagination-page-btn') as HTMLButtonElement | null;
+      if (!btn || !btn.dataset.page) return;
+      goToPage(Number(btn.dataset.page));
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      goToPage(currentPage - 1);
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      goToPage(currentPage + 1);
+    });
 
     chipBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -311,18 +501,18 @@ const filterDomains = [
         btn.classList.add('is-active');
         btn.setAttribute('aria-selected', 'true');
         selectedDomain = btn.dataset.domain || 'all';
-        filterPosts();
+        filterPosts(true);
       });
     });
 
     tagSelect?.addEventListener('change', (e) => {
       selectedTag = (e.target as HTMLSelectElement).value;
-      filterPosts();
+      filterPosts(true);
     });
 
     searchInput?.addEventListener('input', (e) => {
       searchQuery = (e.target as HTMLInputElement).value;
-      filterPosts();
+      filterPosts(true);
     });
 
     resetBtn?.addEventListener('click', () => {
@@ -337,8 +527,11 @@ const filterDomains = [
         b.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
       });
 
-      filterPosts();
+      filterPosts(true);
     });
+
+    // Initial run
+    filterPosts(true);
   }
 
   document.addEventListener('astro:page-load', setupCvBlogFilters);
