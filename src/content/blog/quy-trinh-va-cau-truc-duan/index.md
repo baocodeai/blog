@@ -1,7 +1,7 @@
 ---
 title: Quy trình MLOps và cấu trúc thư mục dự án Machine Learning
 description: Hướng dẫn chi tiết từ bài toán kinh doanh (Business Scoping), Data & Model Engineering đến Serving Patterns, Observability và cấu trúc mã nguồn tối ưu cho hệ thống AI thực chiến.
-date: 2026-08-05
+date: 2026-06-03
 draft: false
 featured: false
 category: MLOps
@@ -101,21 +101,21 @@ Model Engineering biến dữ liệu đã làm sạch thành các mô hình toá
 ### 2. Huấn luyện và quản lý các thí nghiệm
 - Ghi nhận toàn bộ siêu tham số, metrics, artifacts bằng các công cụ chuyên dụng như **MLflow**.
 - Tìm kiếm siêu tham số tối ưu bằng `Bayesian Optimization` hoặc `GridSearch`, `RandomSearch`.
-> **Đọc thêm**: [Tối ưu hóa huấn luyện Deep Learning với Weights & Biases (W&B)](/blog/wandb-logging/index.md)
+> **Đọc thêm**: [Tối ưu hóa huấn luyện Deep Learning với Weights & Biases (W&B)](/blog/wandb-logging/)
 ### 3. Đánh giá và kiểm thử mô hình
-- **Model Evaluation**: Đánh giá đa chiều trên Validation Set sau mỗi epoch/iteration.
-- **Model Testing**: Kiểm thử độc lập lần cuối trên Blind Test Set (tuyệt đối không chạm vào trong quá trình training/tuning).
-- **Slice-based & Invariance Testing**: Kiểm tra hiệu năng trên từng nhóm nhỏ (sub-groups) và khả năng chịu nhiễu (Perturbation testing).
-### 4. Đóng gói Mô hình (Model Packaging)
+- **Model Evaluation**: Đánh trên Validation Set sau mỗi epoch. Đây giống như kỳ thi thử trong quá trình học. Giúp ta biết mô hình đang overfit hay underfit trên tập train. 
+- **Model Testing**: Kiểm thử độc lập lần cuối trên Test Set. Tuyệt đối không dùng Test Set trong quá trình training, bởi vì ta sẽ vô tình làm cho mô hình học lén hay điều chình mô hình để ăn theo làm cho điểm số tăng vọt, gọi là data leak.
+- **Slice-based and Invariance Testing**: Kiểm tra hiệu năng trên từng nhóm nhỏ và khả năng chịu nhiễu. Thay vì tính điểm trên toàn bộ tập test, ta chia tập test thành từng nhóm con dựa trên đặc điểm dữ liệu như độ tuổi, giới tính,... để phát hiện mô hình thiên vị, đảm bảo AI công bằng và không phân biệt đối xử  với bất kỳ nhóm thiểu số nào. Invariance Testing là ta cố tình thêm nhiễu vào dữ liệu để kiểm tra tính robustness và an toàn của mô hình trước các biến động tự nhiên ngoài môi trường production không. 
+### 4. Đóng gói mô hình
 - Chuyển đổi mô hình sang các định dạng suy luận tối ưu:
-  - **ONNX** (Open Neural Network Exchange): Độc lập nền tảng, tương thích cao.
+  - **ONNX** (Open Neural Network Exchange): Độc lập nền tảng, tương thích cao. Ta có thể train bằng pytorch tuỳ thích, nhưng export ra `.onnx` và chạy nó trong môi trường `C++/Java` mà không cần cài đặt cả đống thư viện Python. 
   - **TorchScript / TensorRT**: Tối ưu hóa sâu trên phần cứng GPU NVIDIA.
   - **OpenVINO**: Tối ưu hóa trên CPU/iGPU Intel.
   - **BentoML / Triton Model Store**: Chuẩn hóa container phục vụ serving quy mô lớn.
 
 ---
 
-## Giai đoạn 4: Kiến trúc Triển khai & Vận hành (Code & Serving Engineering)
+## Giai đoạn 4: Code Engineering
 
 Sau khi có artifact mô hình tối ưu, bước tiếp theo là đưa mô hình vào kiến trúc phần mềm thực tế để tiếp nhận yêu cầu từ người dùng hoặc hệ thống khác.
 
@@ -123,27 +123,26 @@ Sau khi có artifact mô hình tối ưu, bước tiếp theo là đưa mô hìn
 
 ### 5 Serving Patterns Cốt lõi Trong Thực Tế
 
-| Serving Pattern                  | Cơ chế hoạt động                                                           | Trường hợp sử dụng phù hợp                                | Ưu / Nhược điểm                                                    |
-| :------------------------------- | :------------------------------------------------------------------------- | :-------------------------------------------------------- | :----------------------------------------------------------------- |
-| **Model-as-a-Service**           | Mô hình bọc trong REST/gRPC API (FastAPI, Triton, TorchServe).             | Ứng dụng web, microservices cần suy luận real-time.       | ✅ Tách biệt độc lập<br>❌ Độ trễ mạng (Network overhead)            |
-| **Model-as-a-Dependency**        | Nhúng trực tiếp runtime model vào code ứng dụng (C++, Wasm, Python lib).   | Ứng dụng di động (Edge AI), IoT, game engines.            | ✅ Siêu nhanh, không cần mạng<br>❌ Khó cập nhật phiên bản           |
-| **Precompute / Batch Inference** | Chạy dự đoán định kỳ theo lô (offline batch), lưu kết quả vào DB/Redis.    | Dự đoán điểm tín dụng hàng đêm, gợi ý sản phẩm định kỳ.   | ✅ Rẻ, chịu tải tức thì<br>❌ Không xử lý được dữ liệu mới phát sinh |
-| **Model-on-Demand (Streaming)**  | Mô hình lắng nghe trực tiếp từ event stream (Kafka, Kinesis).              | Phát hiện gian lận giao dịch tài chính (Fraud Detection). | ✅ Xử lý real-time trên luồng<br>❌ Đòi hỏi hạ tầng stream phức tạp  |
-| **Hybrid Serving**               | Kết hợp Cache/Precompute cho dữ liệu phổ biến + On-demand cho dữ liệu mới. | Hệ thống Recommendation, Search ranking quy mô lớn.       | ✅ Cân bằng tối ưu chi phí & độ trễ<br>❌ Kiến trúc phức tạp         |
+| Serving Pattern                  | Cơ chế hoạt động                                                           | Trường hợp sử dụng phù hợp                                                     | Ưu / Nhược điểm                                                    |
+| :------------------------------- | :------------------------------------------------------------------------- | :----------------------------------------------------------------------------- | :----------------------------------------------------------------- |
+| **Model-as-a-Service**           | Mô hình bọc trong REST/gRPC API.                                           | ứng dụng web, microservices cần suy luận real-time.                            | ✅ Tách biệt độc lập<br>❌ Độ trễ mạng                               |
+| **Model-as-a-Dependency**        | Nhúng trực tiếp runtime model vào code ứng dụng (C++, Wasm, Python lib).   | Ứng dụng di động, edgeAI, IoT                                                  | ✅ Siêu nhanh, không cần mạng<br>❌ Khó cập nhật phiên bản           |
+| **Precompute / Batch Inference** | Chạy dự đoán định kỳ theo lô (offline batch), lưu kết quả vào DB/Redis.    | Dự đoán điểm tín dụng hàng đêm, gợi ý sản phẩm định kỳ.                        | ✅ Rẻ, chịu tải tức thì<br>❌ Không xử lý được dữ liệu mới phát sinh |
+| **Model-on-Demand (Streaming)**  | Mô hình lắng nghe trực tiếp từ event stream (Kafka, Kinesis).              | Phát hiện gian lận giao dịch tài chính, theo dõi bất thường trong chứng khoán. | ✅ Xử lý real-time trên luồng<br>❌ Đòi hỏi hạ tầng stream phức tạp  |
+| **Hybrid Serving**               | Kết hợp Cache/Precompute cho dữ liệu phổ biến + On-demand cho dữ liệu mới. | Hệ thống Recommendation, Search quy mô lớn.                                    | ✅ Cân bằng tối ưu chi phí & độ trễ<br>❌ Kiến trúc phức tạp         |
 
-### Deployment Strategies & Containerization
+### Deployment Strategies
 - **Docker container**: Đóng gói mã nguồn, model weights, CUDA dependencies thành container image bất biến (immutable).
 - **Serverless Inference**: Triển khai mô hình dưới dạng hàm serverless (AWS Lambda, Google Cloud Functions).
-### Performance Monitoring & Observability
+### Performance Monitoring And Observability
 - **Hạ tầng giám sát**: Prometheus + Grafana theo dõi QPS (Queries per second), Latency (p50, p95, p99), GPU/CPU Memory usage.
-- **Giám sát chất lượng AI**:
+- **Giám sát chất lượng AI**: mô hình sau khi đưa lên production sẽ lỗi thời. 
   - **Data Drift**: Phân phối dữ liệu đầu vào thực tế thay đổi so với dữ liệu huấn luyện (dùng thống kê KS-Test, PSI).
   - **Concept Drift**: Mối quan hệ giữa Input và Target thay đổi theo thời gian.
 - **Structured Logging**: Ghi log chi tiết dưới dạng JSON (request_id, input_features, prediction, latency_ms) để phục vụ debug và tái huấn luyện.
 
 ---
-## Cấu trúc Thư mục Dự án ML/MLOps Chuẩn Thực Chiến
-
+## Cấu trúc thư mục của dự án ML/MLOps
 Để đáp ứng toàn bộ các yêu cầu trên, cấu trúc mã nguồn của một dự án Machine Learning chuyên nghiệp cần phân tách rõ ràng trách nhiệm giữa từng tầng:
 
 ![Cấu trúc thư mục dự án Machine Learning chuẩn mực](./project-structure.png)

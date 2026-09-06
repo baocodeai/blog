@@ -1,7 +1,7 @@
 ---
 title: "Kỹ thuật thay đổi kích thước và chuẩn hoá điểm ảnh"
 description: "Tìm hiểu các thuật toán nội suy, và chống méo ảnh và phương pháp chuẩn hoá điểm ảnh trong xử lý ảnh."
-date: 2026-08-12
+date: 2026-06-07
 draft: false
 featured: false
 category: "Image Processing"

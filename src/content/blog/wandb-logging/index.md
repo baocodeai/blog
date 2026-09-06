@@ -1,7 +1,7 @@
 ---
 title: "Tối ưu hóa huấn luyện Deep Learning với Weights & Biases (W&B)"
 description: "Hướng dẫn toàn diện về Weights & Biases: từ thiết lập Experiment Tracking, quản lý Model & Dataset Artifacts, dò tìm siêu tham số tự động với W&B Sweeps đến Case Study phân vùng tổn thương da (Skin Lesion Segmentation) với UNet."
-date: 2026-09-01
+date: 2026-08-26
 draft: false
 featured: true
 category: "MLOps"

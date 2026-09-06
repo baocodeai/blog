@@ -1,7 +1,7 @@
 ---
 title: "Các phương pháp cân bằng Histogram: HE, AHE và CLAHE"
 description: "Phân tích nguyên lý toán học, so sánh trực quan và hướng dẫn triển khai từ đầu (from scratch) các kỹ thuật cân bằng histogram HE, AHE và CLAHE trong xử lý ảnh và thị giác máy tính."
-date: 2026-08-25
+date: 2026-06-24
 draft: false
 featured: false
 category: "Enhancement"

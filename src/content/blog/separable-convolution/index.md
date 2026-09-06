@@ -1,7 +1,7 @@
 ---
 title: "Deep Learning với Separable Convolution"
 description: "Tìm hiểu nguyên lý hoạt động của Spatial Separable Convolution và Depthwise Separable Convolution giúp giảm số lượng tham số và tăng tốc độ tính toán cho CNN."
-date: 2026-09-04
+date: 2026-06-19
 draft: false
 featured: true
 category: "Deep Learning"

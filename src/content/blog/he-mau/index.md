@@ -1,7 +1,7 @@
 ---
 title: "Chuyện màu sắc trong máy tính"
 description: "Giải mã cách máy tính lưu trữ và biểu diễn màu sắc"
-date: 2026-08-29
+date: 2026-06-14
 draft: false
 featured: false
 category: "Image Processing"

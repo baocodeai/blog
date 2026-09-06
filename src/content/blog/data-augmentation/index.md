@@ -1,7 +1,7 @@
 ---
 title: "Kỹ thuật tăng cường dữ liệu trong computer vision"
 description: "Tổng hợp các kỹ thuật tăng cường dữ liệu hình ảnh"
-date: 2026-08-18
+date: 2026-08-17
 draft: false
 featured: false
 category: "Data Preparation"

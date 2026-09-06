@@ -1,7 +1,7 @@
 ---
 title: "Các độ đo đánh giá cho bài toán Segmentation trong Computer Vision"
 description: "độ đo đánh giá cơ bản cho bài toán segmentation"
-date: 2026-08-25
+date: 2026-08-15
 draft: false
 featured: false
 category: "Evaluation"

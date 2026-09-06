@@ -1,7 +1,7 @@
 ---
 title: "Semantic Segmentation với Dilated Convolution"
 description: "Semantic Segmentation với tích chập giãn nở, điều này làm mở rộng vùng nhìn cho mô hình cái nhìn tổng quát mạnh hơn"
-date: 2026-09-04
+date: 2026-08-24
 draft: false
 featured: true
 category: "Deep Learning"

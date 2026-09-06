@@ -1,7 +1,7 @@
 ---
 title: "Các kỹ thuật lọc và khử nhiễu trong xử lý ảnh số"
 description: "Phân tích nguyên lý toán học, so sánh trực quan và hướng dẫn triển khai các bộ lọc không gian và lọc miền tần số"
-date: 2026-08-31
+date: 2026-06-10
 draft: false
 featured: false
 category: "Denoising"
