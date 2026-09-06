@@ -1,7 +1,7 @@
 ---
 title: "DeepLabV2: Semantic Segmentation với Atrous Convolution, ASPP và Dense CRF"
 description: "Tìm hiểu kiến trúc DeepLabv2, kỹ thuật Atrous Convolution, Atrous Spatial Pyramid Pooling (ASPP) và Fully Connected CRF giúp giải quyết thách thức đa tỷ lệ và giữ độ phân giải biên trong phân đoạn ảnh."
-date: 2026-09-06
+date: 2026-08-31
 draft: false
 featured: false
 category: "Deep Learning"

@@ -1,7 +1,7 @@
 ---
 title: "DeepLabV3: Cải tiến ASPP và Multi-Grid trong Semantic Segmentation"
 description: "Khám phá kiến trúc DeepLabv3 với chiến lược Multi-Grid loại bỏ hiện tượng gridding artifacts và module ASPP nâng cấp tích hợp Image Pooling."
-date: 2026-09-06
+date: 2026-08-31
 draft: false
 featured: false
 category: "Deep Learning"

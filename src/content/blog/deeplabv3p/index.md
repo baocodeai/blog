@@ -1,7 +1,7 @@
 ---
 title: "DeepLabv3+: Kiến trúc Encoder-Decoder kết hợp Atrous Separable Convolution"
 description: "Phân tích DeepLabv3+ mở rộng DeepLabv3 thành bộ Encoder kết hợp Decoder đơn giản phục hồi biên sắc nét, tối ưu hoá với Atrous Separable Convolution và Modified Xception."
-date: 2026-09-06
+date: 2026-08-31
 draft: false
 featured: false
 category: "Deep Learning"

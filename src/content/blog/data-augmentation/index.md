@@ -19,7 +19,6 @@ tags:
   - "OpenCV"
 readingTime: "10 min read"
 ---
-
 Tăng cường dữ liệu là tập hợp các kỹ thuật nhằm tạo ra các phiên bản biến đổi từ tập dữ liệu gốc, giúp tăng tính đa dạng và tăng kích thước của dữ liệu huấn luyện mà không cần thu thập thêm. Tăng cường dữ liệu giúp giảm overfitting, tăng khả năng tổng quát hoá của mô hình với dữ liệu nhiễu như ánh sáng, góc chụp, nhiễu và bị che khuất,… 
 
 Các phép biến đổi có thể được chia thành bốn nhóm chính: 
