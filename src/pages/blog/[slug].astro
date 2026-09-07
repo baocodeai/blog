@@ -43,16 +43,16 @@ const postSchema = JSON.stringify({
 >
   <script type="application/ld+json" is:inline set:html={postSchema} />
   <main class="content-shell">
-    <div class="article-layout" style="max-width: var(--max); padding-inline: 1.25rem;">
-      <aside class="article-toc" aria-label="Article sections">
-        {sectionHeadings.length > 0 && (
+    <div class:list={['article-layout', { 'no-toc': sectionHeadings.length === 0 }]}>
+      {sectionHeadings.length > 0 && (
+        <aside class="article-toc" aria-label="Article sections">
           <nav>
             {sectionHeadings.map((heading) => (
               <a href={`#${heading.slug}`} data-heading-link={heading.slug}>{heading.text}</a>
             ))}
           </nav>
-        )}
-      </aside>
+        </aside>
+      )}
 
       <article class="article-shell" data-pagefind-body>
         <header class="article-header">

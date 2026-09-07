@@ -1055,6 +1055,11 @@ button.nav-icon-link {
 }
 
 .article-layout {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding-inline: 1.25rem;
+    box-sizing: border-box;
+    width: 100%;
     position: relative;
     display: grid;
     grid-template-columns: minmax(8rem, 12rem) minmax(0, 860px);
@@ -1063,6 +1068,12 @@ button.nav-icon-link {
     padding-top: 4rem;
     /* Sits directly under the sticky header's border — avoid a double line. */
     border-top: 0;
+}
+
+.article-layout.no-toc {
+    display: block;
+    max-width: 860px;
+    margin: 0 auto;
 }
 
 .article-shell {
@@ -1584,6 +1595,7 @@ button.nav-icon-link {
     .article-layout {
         display: block;
         max-width: 860px;
+        margin: 0 auto;
     }
 
     .article-toc {
