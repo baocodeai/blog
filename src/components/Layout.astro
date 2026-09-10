@@ -2,6 +2,7 @@
 import { ClientRouter } from 'astro:transitions';
 import 'katex/dist/katex.min.css';
 import CosmosBackground from './CosmosBackground.astro';
+import { SITE_CONFIG } from '../site.config';
 
 interface Props {
   title: string;
@@ -88,7 +89,9 @@ const currentPath = Astro.url.pathname;
         <div class="nav-links">
           <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Home</a>
           <a href="/blog/" aria-current={currentPath.startsWith('/blog') ? 'page' : undefined}>Blog</a>
-          <a href="/projects/" aria-current={currentPath.startsWith('/projects') ? 'page' : undefined}>Projects</a>
+          {SITE_CONFIG.showProjects && (
+            <a href="/projects/" aria-current={currentPath.startsWith('/projects') ? 'page' : undefined}>Projects</a>
+          )}
           <a href="/about/" aria-current={currentPath === '/about/' ? 'page' : undefined}>About</a>
         </div>
 
@@ -137,7 +140,9 @@ const currentPath = Astro.url.pathname;
           <div class="nav-menu-panel">
             <a href="/" aria-current={currentPath === '/' ? 'page' : undefined}>Home</a>
             <a href="/blog/" aria-current={currentPath.startsWith('/blog') ? 'page' : undefined}>Blog</a>
-            <a href="/projects/" aria-current={currentPath.startsWith('/projects') ? 'page' : undefined}>Projects</a>
+            {SITE_CONFIG.showProjects && (
+              <a href="/projects/" aria-current={currentPath.startsWith('/projects') ? 'page' : undefined}>Projects</a>
+            )}
             <a href="/about/" aria-current={currentPath === '/about/' ? 'page' : undefined}>About</a>
             <div class="nav-menu-mobile-tools">
               <a class="mobile-tool-link" href="https://github.com/baocodeai" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -168,7 +173,9 @@ const currentPath = Astro.url.pathname;
             <span class="footer-col-title">Navigation</span>
             <a href="/">Home</a>
             <a href="/blog/">Blog</a>
-            <a href="/projects/">Projects & Demos</a>
+            {SITE_CONFIG.showProjects && (
+              <a href="/projects/">Projects & Demos</a>
+            )}
             <a href="/about/">About</a>
           </div>
 
